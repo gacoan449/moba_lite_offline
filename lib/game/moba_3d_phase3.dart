@@ -1,11 +1,11 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'moba_3d_phase2.dart';
 
 /// Phase 3 command layer for Arena Legends 3D.
-/// Keeps the proven Phase-2 battle simulation intact while adding a
-/// production-style pre-match shell: difficulty, graphics profile,
-/// temporal/4D-inspired mode and battle rules.
+/// Adds a production-style pre-match shell and a temporal visual layer while
+/// retaining the existing true-3D battle simulation underneath.
 class Moba3DPhase3 extends StatefulWidget {
   const Moba3DPhase3({super.key});
 
@@ -39,7 +39,7 @@ class _Moba3DPhase3State extends State<Moba3DPhase3> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     child: Text(
-                      'PHASE 3 • $quality • DIFF $difficulty${temporal ? ' • TEMPORAL' : ''}${sound ? ' • AUDIO' : ''}',
+                      'PHASE 3 • $quality • DIFF $difficulty${temporal ? ' • TEMPORAL' : ''}${sound ? ' • AUDIO' : ''}${cinematic ? ' • CINEMATIC' : ''}',
                       style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
                     ),
                   ),
@@ -70,7 +70,7 @@ class _Moba3DPhase3State extends State<Moba3DPhase3> {
                   child: Column(
                     children: [
                       const Text('ARENA LEGENDS', style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, letterSpacing: 3)),
-                      const Text('3D • PHASE 3', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.cyanAccent)),
+                      const Text('TRUE 3D • PHASE 3', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.cyanAccent)),
                       const SizedBox(height: 18),
                       _panel(
                         title: 'BATTLE CONFIGURATION',
@@ -89,15 +89,15 @@ class _Moba3DPhase3State extends State<Moba3DPhase3> {
                                 ),
                               ],
                             ),
-                            SwitchListTile(title: const Text('Temporal / 4D-inspired combat layer'), subtitle: const Text('Time phase, afterimage and slow-time visual architecture'), value: temporal, onChanged: (v) => setState(() => temporal = v)),
-                            SwitchListTile(title: const Text('Battle audio'), subtitle: const Text('Audio switch reserved for the Phase 3 asset/audio pipeline'), value: sound, onChanged: (v) => setState(() => sound = v)),
-                            SwitchListTile(title: const Text('Cinematic camera'), value: cinematic, onChanged: (v) => setState(() => cinematic = v)),
+                            SwitchListTile(title: const Text('Temporal / 4D-inspired visual layer'), subtitle: const Text('Time-phase rings and temporal atmosphere; not literal fourth spatial dimension'), value: temporal, onChanged: (v) => setState(() => temporal = v)),
+                            SwitchListTile(title: const Text('Battle audio pipeline'), subtitle: const Text('Audio master switch; battle SFX assets are the next production asset pass'), value: sound, onChanged: (v) => setState(() => sound = v)),
+                            SwitchListTile(title: const Text('Cinematic camera mode'), value: cinematic, onChanged: (v) => setState(() => cinematic = v)),
                           ],
                         ),
                       ),
                       const SizedBox(height: 14),
                       _panel(
-                        title: 'MOBA RULES',
+                        title: 'MOBA BATTLE RULES',
                         child: const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -122,7 +122,7 @@ class _Moba3DPhase3State extends State<Moba3DPhase3> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      const Text('Phase 3 memakai mesin pertarungan 3D Phase 2 yang sudah ada; konfigurasi berikut menjadi command layer untuk pengembangan sistem lanjutan.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white60, fontSize: 11)),
+                      const Text('Phase 3 adalah lapisan produksi di atas mesin 3D yang sudah ada. Difficulty/quality/cinematic/audio menjadi konfigurasi target pipeline; simulasi Phase 2 tetap menjadi battle core sampai sistem modular berikutnya menggantikannya.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white60, fontSize: 11)),
                     ],
                   ),
                 ),
@@ -179,9 +179,7 @@ class _TemporalLayerState extends State<_TemporalLayer> {
   @override
   void dispose() { timer?.cancel(); super.dispose(); }
   @override
-  Widget build(BuildContext context) => IgnorePointer(
-        child: CustomPaint(painter: _TemporalPainter(phase)),
-      );
+  Widget build(BuildContext context) => IgnorePointer(child: CustomPaint(painter: _TemporalPainter(phase)));
 }
 
 class _TemporalPainter extends CustomPainter {
@@ -190,7 +188,7 @@ class _TemporalPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final p = Paint()..style = PaintingStyle.stroke..strokeWidth = 1.2..color = Colors.cyanAccent.withOpacity(.035);
-    final r = (phase.sin().abs() * 22) + 20;
+    final r = (math.sin(phase).abs() * 22) + 20;
     for (var i = 0; i < 4; i++) {
       final rr = r + i * 28;
       canvas.drawOval(Rect.fromCenter(center: Offset(size.width / 2, size.height / 2), width: size.width * .6 + rr, height: size.height * .32 + rr / 2), p);
