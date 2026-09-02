@@ -7,6 +7,7 @@ import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'components/arena_map.dart';
 import 'components/bot_enemy.dart';
 import 'components/hero_player.dart';
 import 'components/jungle_monster.dart';
@@ -63,6 +64,11 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
     selectedSkinId = _prefs?.getString('selected_skin') ?? 'astra_default';
     ownedHeroes.addAll(_prefs?.getStringList('owned_heroes') ?? ['astra']);
     ownedSkins.addAll(_prefs?.getStringList('owned_skins') ?? ['astra_default']);
+
+    // Original battlefield layer: three lanes, central river, jungle camps,
+    // bases and decorative vegetation. Gameplay coordinates remain compatible
+    // with the existing hero/minion/turret systems.
+    world.add(ArenaMapComponent());
 
     player = HeroPlayerComponent();
     world.add(player);
@@ -133,6 +139,7 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
     enemies.clear();
     minions.clear();
 
+    // Three lanes, each with two defensive structures per side.
     const lanes = [-560.0, 0.0, 560.0];
     for (final y in lanes) {
       for (final x in [-2050.0, -1250.0]) {
@@ -155,6 +162,7 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
       }
     }
 
+    // Jungle camps around the river, plus a central boss camp.
     final monsterPositions = <Vector2>[
       Vector2(-950.0, -300.0),
       Vector2(-950.0, 300.0),
@@ -267,9 +275,7 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
   }
 
   Future<void> selectHero(HeroDefinition hero) async {
-    if (!ownedHeroes.contains(hero.id)) {
-      return;
-    }
+    if (!ownedHeroes.contains(hero.id)) return;
     selectedHeroId = hero.id;
     await _prefs?.setString('selected_hero', hero.id);
     applyHeroStats();
@@ -277,12 +283,8 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
   }
 
   Future<bool> buyHero(HeroDefinition hero) async {
-    if (ownedHeroes.contains(hero.id)) {
-      return true;
-    }
-    if (coins < hero.price) {
-      return false;
-    }
+    if (ownedHeroes.contains(hero.id)) return true;
+    if (coins < hero.price) return false;
     coins -= hero.price;
     ownedHeroes.add(hero.id);
     await _saveWallet();
@@ -306,9 +308,7 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
 
   Future<void> equipSkin(Map<String, Object> skin) async {
     final id = skin['id']! as String;
-    if (!ownedSkins.contains(id)) {
-      return;
-    }
+    if (!ownedSkins.contains(id)) return;
     selectedSkinId = id;
     await _prefs?.setString('selected_skin', id);
     hudTick.value++;
@@ -341,51 +341,18 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
   }
 
   void triggerGameOver() {
-    if (victory) {
-      return;
-    }
+    if (victory) return;
     overlays.add('GAME_OVER_NORMAL');
     pauseEngine();
   }
 
   @override
   void render(Canvas canvas) {
+    // Neutral fallback background; ArenaMapComponent paints the complete
+    // original battlefield above this layer.
     canvas.drawRect(
       const Rect.fromLTWH(-3500, -1800, 7000, 3600),
       Paint()..color = const Color(0xff294b31),
-    );
-
-    final lanePaint = Paint()
-      ..color = const Color(0xffb49a67)
-      ..strokeWidth = 120
-      ..style = PaintingStyle.stroke;
-    for (final y in [-560.0, 0.0, 560.0]) {
-      canvas.drawLine(Offset(-3000, y), Offset(3000, y), lanePaint);
-    }
-
-    canvas.drawRect(
-      const Rect.fromLTWH(-120, -1800, 240, 3600),
-      Paint()..color = const Color(0xff2b6780).withOpacity(.55),
-    );
-
-    final junglePaint = Paint()..color = const Color(0xff173821);
-    const jungleZones = [
-      Rect.fromLTWH(-1150, -800, 500, 380),
-      Rect.fromLTWH(650, -800, 500, 380),
-      Rect.fromLTWH(-1150, 420, 500, 380),
-      Rect.fromLTWH(650, 420, 500, 380),
-    ];
-    for (final zone in jungleZones) {
-      canvas.drawRect(zone, junglePaint);
-    }
-
-    canvas.drawRect(
-      const Rect.fromLTWH(-2900, -1000, 300, 2000),
-      Paint()..color = const Color(0xff2456a5).withOpacity(.7),
-    );
-    canvas.drawRect(
-      const Rect.fromLTWH(2600, -1000, 300, 2000),
-      Paint()..color = const Color(0xffa42d3b).withOpacity(.7),
     );
     super.render(canvas);
   }
