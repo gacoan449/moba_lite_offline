@@ -31,7 +31,7 @@ class HeroPlayerComponent extends PositionComponent with HasGameReference<MOBAOf
     attackCooldown = math.max(0, attackCooldown - dt).toDouble();
     skillCooldown = math.max(0, skillCooldown - dt).toDouble();
     mana = math.min(100, mana + dt * 5).toDouble();
-    final input = gameRef.joystick.relativeDelta;
+    final input = game.joystick.relativeDelta;
     if (input.length2 > .01) {
       facing = input.normalized();
       position += facing * speed * dt;
@@ -46,7 +46,7 @@ class HeroPlayerComponent extends PositionComponent with HasGameReference<MOBAOf
     attackCooldown = premium ? 0.22 : 0.45;
     dynamic target;
     double bestDistance = double.infinity;
-    for (final enemy in gameRef.enemies) {
+    for (final enemy in game.enemies) {
       if (!enemy.isDead) {
         final d = enemy.position.distanceTo(position);
         if (d < bestDistance && d < 420) {
@@ -55,7 +55,7 @@ class HeroPlayerComponent extends PositionComponent with HasGameReference<MOBAOf
         }
       }
     }
-    for (final minion in gameRef.minions) {
+    for (final minion in game.minions) {
       if (!minion.isRemoved && !minion.allied) {
         final d = minion.position.distanceTo(position);
         if (d < bestDistance && d < 350) {
@@ -64,7 +64,7 @@ class HeroPlayerComponent extends PositionComponent with HasGameReference<MOBAOf
         }
       }
     }
-    for (final monster in gameRef.monsters) {
+    for (final monster in game.monsters) {
       if (!monster.dead) {
         final d = monster.position.distanceTo(position);
         if (d < bestDistance && d < 350) {
@@ -73,7 +73,7 @@ class HeroPlayerComponent extends PositionComponent with HasGameReference<MOBAOf
         }
       }
     }
-    for (final turret in gameRef.turrets) {
+    for (final turret in game.turrets) {
       if (!turret.allied && !turret.destroyed) {
         final d = turret.position.distanceTo(position);
         if (d < bestDistance && d < 330) {
@@ -95,18 +95,18 @@ class HeroPlayerComponent extends PositionComponent with HasGameReference<MOBAOf
     if (isDead || skillCooldown > 0 || mana < 30) return;
     skillCooldown = 5;
     mana -= 30;
-    for (final enemy in List<BotEnemyComponent>.from(gameRef.enemies)) {
+    for (final enemy in List<BotEnemyComponent>.from(game.enemies)) {
       if (!enemy.isDead && enemy.position.distanceTo(position) < 240) enemy.takeDamage(baseSkillDamage);
     }
-    for (final minion in List<MinionComponent>.from(gameRef.minions)) {
+    for (final minion in List<MinionComponent>.from(game.minions)) {
       if (!minion.isRemoved && !minion.allied && minion.position.distanceTo(position) < 240) {
         minion.takeDamage(baseSkillDamage * .8);
       }
     }
-    for (final monster in List<JungleMonster>.from(gameRef.monsters)) {
+    for (final monster in List<JungleMonster>.from(game.monsters)) {
       if (!monster.dead && monster.position.distanceTo(position) < 240) monster.takeDamage(baseSkillDamage * .8);
     }
-    gameRef.flashMessage('${gameRef.selectedHero.name} • SKILL AREA!');
+    game.flashMessage('${game.selectedHero.name} • SKILL AREA!');
   }
 
   void takeDamage(double damage) {
@@ -115,7 +115,7 @@ class HeroPlayerComponent extends PositionComponent with HasGameReference<MOBAOf
     if (hp <= 0) {
       hp = 0;
       isDead = true;
-      gameRef.triggerGameOver();
+      game.triggerGameOver();
     }
   }
 
@@ -134,7 +134,7 @@ class HeroPlayerComponent extends PositionComponent with HasGameReference<MOBAOf
     super.render(canvas);
     final origin = Offset(size.x / 2, size.y / 2);
     final pulse = math.sin(_visualTime * 5);
-    final armor = gameRef.selectedHero.id == 'lyra' ? const Color(0xff9c6bff) : const Color(0xff39a9ff);
+    final armor = game.selectedHero.id == 'lyra' ? const Color(0xff9c6bff) : const Color(0xff39a9ff);
     WorldRender3D.shadow(canvas, Offset(origin.dx, origin.dy + 31), 58, 17);
     canvas.drawOval(Rect.fromCenter(center: Offset(origin.dx, origin.dy + 24), width: 48, height: 15), Paint()
       ..style = PaintingStyle.stroke ..strokeWidth = 2 ..color = armor.withValues(alpha: .45 + pulse * .08));
