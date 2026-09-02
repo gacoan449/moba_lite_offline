@@ -15,6 +15,8 @@ class MinionComponent extends PositionComponent with HasGameReference<MOBAOfflin
       : hp = ranged ? 65 : 95,
         super(position: position, size: Vector2.all(52), anchor: Anchor.center);
 
+  bool get dead => hp <= 0;
+
   void takeDamage(double damage) {
     hp -= damage;
     if (hp <= 0) {
@@ -28,10 +30,10 @@ class MinionComponent extends PositionComponent with HasGameReference<MOBAOfflin
   @override
   void update(double dt) {
     super.update(dt);
-    if (hp <= 0) return;
+    if (dead) return;
     visualTime += dt;
     attackTimer = math.max(0, attackTimer - dt).toDouble();
-    final enemyMinions = game.minions.where((minion) => minion.allied != allied && !minion.isRemoved && minion.position.distanceTo(position) < 80).toList();
+    final enemyMinions = game.minions.where((minion) => minion.allied != allied && !minion.isRemoved && !minion.dead && minion.position.distanceTo(position) < 80).toList();
     final enemyTurrets = game.turrets.where((turret) => turret.allied != allied && !turret.destroyed && turret.position.distanceTo(position) < 95).toList();
     if (attackTimer <= 0) {
       if (enemyMinions.isNotEmpty) {
