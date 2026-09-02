@@ -31,17 +31,17 @@ class BotEnemyComponent extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
-    if (isDead || gameRef.player.isDead) return;
+    if (isDead || game.player.isDead) return;
     visualTime += dt;
     attackTimer = math.max(0, attackTimer - dt).toDouble();
-    final delta = gameRef.player.position - position;
+    final delta = game.player.position - position;
     final distance = delta.length;
-    final aggro = 700 + gameRef.currentLevel * 30;
+    final aggro = 700 + game.currentLevel * 30;
     if (distance < aggro && distance > 52) {
-      position += delta.normalized() * (speed + gameRef.currentLevel * 5) * dt;
+      position += delta.normalized() * (speed + game.currentLevel * 5) * dt;
     }
     if (distance <= 58 && attackTimer <= 0) {
-      gameRef.player.takeDamage(attackDamage + gameRef.currentLevel * 1.5);
+      game.player.takeDamage(attackDamage + game.currentLevel * 1.5);
       attackTimer = .65;
     }
   }
@@ -52,7 +52,7 @@ class BotEnemyComponent extends PositionComponent
     if (currentHp <= 0) {
       isDead = true;
       removeFromParent();
-      gameRef.onEnemyKilled();
+      game.onEnemyKilled();
     }
   }
 
