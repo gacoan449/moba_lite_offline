@@ -1,8 +1,6 @@
 import 'dart:math' as math;
-
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-
 import '../moba_game.dart';
 import 'bot_enemy.dart';
 import 'jungle_monster.dart';
@@ -10,8 +8,7 @@ import 'minion.dart';
 import 'turret.dart';
 import 'world_render_3d.dart';
 
-class HeroPlayerComponent extends PositionComponent
-    with HasGameRef<MOBAOfflineGame> {
+class HeroPlayerComponent extends PositionComponent with HasGameReference<MOBAOfflineGame> {
   double maxHp = 320;
   double hp = 320;
   double mana = 100;
@@ -24,12 +21,7 @@ class HeroPlayerComponent extends PositionComponent
   Vector2 facing = Vector2(1, 0);
   double _visualTime = 0;
 
-  HeroPlayerComponent()
-      : super(
-          position: Vector2(-2350, 0),
-          size: Vector2.all(92),
-          anchor: Anchor.center,
-        );
+  HeroPlayerComponent() : super(position: Vector2(-2350, 0), size: Vector2.all(92), anchor: Anchor.center);
 
   @override
   void update(double dt) {
@@ -39,7 +31,6 @@ class HeroPlayerComponent extends PositionComponent
     attackCooldown = math.max(0, attackCooldown - dt).toDouble();
     skillCooldown = math.max(0, skillCooldown - dt).toDouble();
     mana = math.min(100, mana + dt * 5).toDouble();
-
     final input = gameRef.joystick.relativeDelta;
     if (input.length2 > .01) {
       facing = input.normalized();
@@ -58,25 +49,37 @@ class HeroPlayerComponent extends PositionComponent
     for (final enemy in gameRef.enemies) {
       if (!enemy.isDead) {
         final d = enemy.position.distanceTo(position);
-        if (d < bestDistance && d < 420) { bestDistance = d; target = enemy; }
+        if (d < bestDistance && d < 420) {
+          bestDistance = d;
+          target = enemy;
+        }
       }
     }
     for (final minion in gameRef.minions) {
       if (!minion.isRemoved && !minion.allied) {
         final d = minion.position.distanceTo(position);
-        if (d < bestDistance && d < 350) { bestDistance = d; target = minion; }
+        if (d < bestDistance && d < 350) {
+          bestDistance = d;
+          target = minion;
+        }
       }
     }
     for (final monster in gameRef.monsters) {
       if (!monster.dead) {
         final d = monster.position.distanceTo(position);
-        if (d < bestDistance && d < 350) { bestDistance = d; target = monster; }
+        if (d < bestDistance && d < 350) {
+          bestDistance = d;
+          target = monster;
+        }
       }
     }
     for (final turret in gameRef.turrets) {
       if (!turret.allied && !turret.destroyed) {
         final d = turret.position.distanceTo(position);
-        if (d < bestDistance && d < 330) { bestDistance = d; target = turret; }
+        if (d < bestDistance && d < 330) {
+          bestDistance = d;
+          target = turret;
+        }
       }
     }
     final direction = target == null ? facing : (target.position - position).normalized();
@@ -131,76 +134,24 @@ class HeroPlayerComponent extends PositionComponent
     super.render(canvas);
     final origin = Offset(size.x / 2, size.y / 2);
     final pulse = math.sin(_visualTime * 5);
-    final armor = gameRef.selectedHero.id == 'lyra'
-        ? const Color(0xff9c6bff)
-        : const Color(0xff39a9ff);
-
+    final armor = gameRef.selectedHero.id == 'lyra' ? const Color(0xff9c6bff) : const Color(0xff39a9ff);
     WorldRender3D.shadow(canvas, Offset(origin.dx, origin.dy + 31), 58, 17);
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(origin.dx, origin.dy + 24), width: 48, height: 15),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..color = armor.withOpacity(.45 + pulse * .08),
-    );
-
-    WorldRender3D.armoredBody(
-      canvas,
-      center: Offset(origin.dx, origin.dy + 4),
-      width: 58,
-      height: 58,
-      primary: const Color(0xff174f91),
-      secondary: armor,
-      phase: _visualTime,
-    );
-
+    canvas.drawOval(Rect.fromCenter(center: Offset(origin.dx, origin.dy + 24), width: 48, height: 15), Paint()
+      ..style = PaintingStyle.stroke ..strokeWidth = 2 ..color = armor.withValues(alpha: .45 + pulse * .08));
+    WorldRender3D.armoredBody(canvas, center: Offset(origin.dx, origin.dy + 4), width: 58, height: 58,
+      primary: const Color(0xff174f91), secondary: armor, phase: _visualTime);
     canvas.drawCircle(Offset(origin.dx, origin.dy - 21), 17, Paint()..color = armor);
-    canvas.drawPath(
-      Path()
-        ..moveTo(origin.dx - 17, origin.dy - 22)
-        ..lineTo(origin.dx, origin.dy - 34)
-        ..lineTo(origin.dx + 17, origin.dy - 22)
-        ..lineTo(origin.dx + 12, origin.dy - 13)
-        ..lineTo(origin.dx - 12, origin.dy - 13)
-        ..close(),
-      Paint()..color = const Color(0xff10213b),
-    );
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(origin.dx, origin.dy - 19), width: 21, height: 7),
-      Paint()..color = Colors.white.withOpacity(.78),
-    );
-    canvas.drawCircle(
-      Offset(origin.dx, origin.dy + 3),
-      5 + pulse * .7,
-      Paint()..color = Colors.cyanAccent.withOpacity(.8),
-    );
-
+    canvas.drawPath(Path()..moveTo(origin.dx - 17, origin.dy - 22)..lineTo(origin.dx, origin.dy - 34)..lineTo(origin.dx + 17, origin.dy - 22)..lineTo(origin.dx + 12, origin.dy - 13)..lineTo(origin.dx - 12, origin.dy - 13)..close(), Paint()..color = const Color(0xff10213b));
+    canvas.drawOval(Rect.fromCenter(center: Offset(origin.dx, origin.dy - 19), width: 21, height: 7), Paint()..color = Colors.white.withValues(alpha: .78));
+    canvas.drawCircle(Offset(origin.dx, origin.dy + 3), 5 + pulse * .7, Paint()..color = Colors.cyanAccent.withValues(alpha: .8));
     for (final dx in [-25.0, 25.0]) {
-      canvas.drawOval(
-        Rect.fromCenter(center: Offset(origin.dx + dx, origin.dy + 3), width: 18, height: 12),
-        Paint()..color = armor.withOpacity(.92),
-      );
+      canvas.drawOval(Rect.fromCenter(center: Offset(origin.dx + dx, origin.dy + 3), width: 18, height: 12), Paint()..color = armor.withValues(alpha: .92));
     }
-
     final direction = facing.normalized();
     final weaponStart = Offset(origin.dx + direction.x * 17, origin.dy + direction.y * 17);
     final weaponEnd = Offset(origin.dx + direction.x * 39, origin.dy + direction.y * 39);
-    canvas.drawLine(
-      weaponStart,
-      weaponEnd,
-      Paint()
-        ..color = Colors.white
-        ..strokeWidth = 6,
-    );
-    canvas.drawCircle(weaponEnd, 4 + pulse.abs(), Paint()..color = Colors.cyanAccent.withOpacity(.7));
-
-    WorldRender3D.hpBar(
-      canvas,
-      x: 7,
-      y: 2,
-      width: size.x - 14,
-      hp: hp,
-      maxHp: maxHp,
-    );
+    canvas.drawLine(weaponStart, weaponEnd, Paint()..color = Colors.white..strokeWidth = 6);
+    canvas.drawCircle(weaponEnd, 4 + pulse.abs(), Paint()..color = Colors.cyanAccent.withValues(alpha: .7));
+    WorldRender3D.hpBar(canvas, x: 7, y: 2, width: size.x - 14, hp: hp, maxHp: maxHp);
   }
 }
