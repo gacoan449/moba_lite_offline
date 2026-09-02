@@ -1,20 +1,16 @@
-import 'dart:math' as math;
-
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
 /// Stylized original MOBA battlefield. It uses familiar three-lane gameplay
 /// readability without copying another game's artwork or assets.
-class ArenaMapComponent extends Component with HasGameRef {
+class ArenaMapComponent extends Component {
   @override
   void render(Canvas canvas) {
-    // Entire battlefield.
     canvas.drawRect(
       const Rect.fromLTWH(-3500, -1800, 7000, 3600),
       Paint()..color = const Color(0xff4b8b55),
     );
 
-    // Soft jungle masses between lanes.
     final jungle = Paint()..color = const Color(0xff2f6b3b);
     const zones = [
       Rect.fromLTWH(-1550, -1050, 1050, 360),
@@ -23,13 +19,10 @@ class ArenaMapComponent extends Component with HasGameRef {
       Rect.fromLTWH(500, 690, 1050, 360),
     ];
     for (final zone in zones) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(zone, const Radius.circular(110)),
-        jungle,
-      );
+      canvas.drawRRect(RRect.fromRectAndRadius(zone, const Radius.circular(110)), jungle);
     }
 
-    // River and two decorative banks.
+    // Central river.
     canvas.drawRect(
       const Rect.fromLTWH(-125, -1800, 250, 3600),
       Paint()..color = const Color(0xff39a6bd).withOpacity(.82),
@@ -43,7 +36,7 @@ class ArenaMapComponent extends Component with HasGameRef {
       Paint()..color = const Color(0xffa9e6cf).withOpacity(.55),
     );
 
-    // Three broad lanes with stone shoulders.
+    // Three readable lanes.
     final shoulder = Paint()
       ..color = const Color(0xffd4b87a)
       ..style = PaintingStyle.stroke
@@ -59,7 +52,6 @@ class ArenaMapComponent extends Component with HasGameRef {
       canvas.drawLine(const Offset(-3000, y), const Offset(3000, y), road);
     }
 
-    // Lane markings and river crossings.
     final mark = Paint()
       ..color = Colors.white.withOpacity(.20)
       ..strokeWidth = 5;
@@ -78,11 +70,9 @@ class ArenaMapComponent extends Component with HasGameRef {
       );
     }
 
-    // Bases: original crystal sanctuaries.
     _drawBase(canvas, -2700, true);
     _drawBase(canvas, 2700, false);
 
-    // Jungle camp pads and stones.
     final pad = Paint()..color = const Color(0xff244f31).withOpacity(.72);
     for (final center in [
       const Offset(-950, -300),
@@ -103,34 +93,28 @@ class ArenaMapComponent extends Component with HasGameRef {
       );
     }
 
-    // Small decorative trees around the jungle.
-    final treePaint = Paint()..color = const Color(0xff215b32);
-    final leafPaint = Paint()..color = const Color(0xff63a64d);
-    final treePoints = <Offset>[];
+    // Stylized tree clusters.
+    final trunk = Paint()..color = const Color(0xff215b32);
+    final leaves = Paint()..color = const Color(0xff63a64d);
     for (int row = 0; row < 4; row++) {
       for (int col = 0; col < 6; col++) {
         final x = -1450.0 + col * 105 + (row.isOdd ? 45 : 0);
         final y = -980.0 + row * 95;
-        treePoints.add(Offset(x, y));
-        treePoints.add(Offset(-x, y));
-        treePoints.add(Offset(x, -y));
-        treePoints.add(Offset(-x, -y));
+        for (final p in [Offset(x, y), Offset(-x, y), Offset(x, -y), Offset(-x, -y)]) {
+          canvas.drawRect(Rect.fromLTWH(p.dx - 5, p.dy + 18, 10, 28), trunk);
+          canvas.drawCircle(Offset(p.dx, p.dy + 8), 25, leaves);
+          canvas.drawCircle(Offset(p.dx - 15, p.dy + 18), 18, leaves);
+          canvas.drawCircle(Offset(p.dx + 15, p.dy + 18), 18, leaves);
+        }
       }
-    }
-    for (final p in treePoints) {
-      canvas.drawRect(Rect.fromLTWH(p.dx - 5, p.dy + 18, 10, 28), treePaint);
-      canvas.drawCircle(Offset(p.dx, p.dy + 8), 25, leafPaint);
-      canvas.drawCircle(Offset(p.dx - 15, p.dy + 18), 18, leafPaint);
-      canvas.drawCircle(Offset(p.dx + 15, p.dy + 18), 18, leafPaint);
     }
   }
 
   void _drawBase(Canvas canvas, double x, bool allied) {
     final main = allied ? const Color(0xff2878d8) : const Color(0xffd13d4b);
     final glow = allied ? const Color(0xff8ee8ff) : const Color(0xffffa1b6);
-    final shadow = Paint()..color = Colors.black26;
 
-    canvas.drawCircle(Offset(x, 0), 300, shadow);
+    canvas.drawCircle(Offset(x, 0), 300, Paint()..color = Colors.black26);
     canvas.drawCircle(Offset(x, 0), 255, Paint()..color = main.withOpacity(.18));
     canvas.drawCircle(
       Offset(x, 0),
