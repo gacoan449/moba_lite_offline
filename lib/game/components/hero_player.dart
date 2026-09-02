@@ -1,124 +1,18 @@
 import 'dart:math' as math;
-import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import '../moba_game.dart';
 import 'bot_enemy.dart';
-import 'projectile.dart';
-
-class HeroPlayerComponent extends PositionComponent
-    with CollisionCallbacks, HasGameRef<MOBAOfflineGame> {
-  double maxHp = 320;
-  double hp = 320;
-  double mana = 100;
-  double speed = 185;
-  double baseDamage = 28;
-  double baseSkillDamage = 75;
-  double attackCooldown = 0;
-  double skillCooldown = 0;
-  bool isDead = false;
-  Vector2 facing = Vector2(1, 0);
-
-  HeroPlayerComponent()
-      : super(position: Vector2.zero(), size: Vector2.all(58), anchor: Anchor.center);
-
-  @override
-  Future<void> onLoad() async {
-    await super.onLoad();
-    add(CircleHitbox(radius: 20));
-  }
-
-  @override
-  void update(double dt) {
-    super.update(dt);
-    if (isDead) return;
-    attackCooldown = math.max(0, attackCooldown - dt);
-    skillCooldown = math.max(0, skillCooldown - dt);
-    mana = math.min(100, mana + dt * 4);
-    final input = gameRef.joystick.relativeDelta;
-    if (input.length2 > 0.01) {
-      final dir = input.normalized();
-      facing = dir.clone();
-      position += dir * speed * dt;
-      position.x = position.x.clamp(-2800, 2800).toDouble();
-      position.y = position.y.clamp(-2800, 2800).toDouble();
-    }
-    if (hp < maxHp) hp = math.min(maxHp, hp + dt * 0.8);
-  }
-
-  void basicAttack(bool premium) {
-    if (isDead || attackCooldown > 0) return;
-    attackCooldown = premium ? 0.22 : 0.42;
-    BotEnemyComponent? target;
-    double best = double.infinity;
-    for (final enemy in gameRef.enemies) {
-      final d = enemy.position.distanceTo(position);
-      if (!enemy.isDead && d < 520 && d < best) {
-        best = d;
-        target = enemy;
-      }
-    }
-    final direction = target == null ? facing.clone() : (target.position - position).normalized();
-    facing = direction.clone();
-    gameRef.world.add(Projectile(
-      direction: direction,
-      damage: (premium ? baseDamage * 1.7 : baseDamage),
-      position: position + direction * 28,
-      isPremium: premium,
-    ));
-  }
-
-  void useSkill() {
-    if (isDead || skillCooldown > 0 || mana < 30) return;
-    skillCooldown = 5.0;
-    mana -= 30;
-    for (final enemy in List<BotEnemyComponent>.from(gameRef.enemies)) {
-      if (!enemy.isDead && enemy.position.distanceTo(position) < 210) {
-        enemy.takeDamage(baseSkillDamage);
-      }
-    }
-    gameRef.flashMessage('SKILL: ${gameRef.selectedHero.name.toUpperCase()} • SHOCKWAVE!');
-  }
-
-  void takeDamage(double damage) {
-    if (isDead) return;
-    hp -= damage;
-    if (hp <= 0) {
-      hp = 0;
-      isDead = true;
-      gameRef.triggerGameOver();
-    }
-  }
-
-  void reset() {
-    isDead = false;
-    hp = maxHp;
-    mana = 100;
-    attackCooldown = 0;
-    skillCooldown = 0;
-    position = Vector2.zero();
-    facing = Vector2(1, 0);
-  }
-
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-    final s = size.x / 58;
-    final center = Offset(size.x / 2, size.y / 2);
-    final body = Paint()..color = const Color(0xFF1769AA);
-    final dark = Paint()..color = const Color(0xFF0D3B66);
-    final armor = Paint()..color = gameRef.selectedHeroId == 'lyra' ? const Color(0xFF9C6BFF) : const Color(0xFF4FC3F7);
-    canvas.drawOval(Rect.fromCenter(center: Offset(center.dx, center.dy + 16 * s), width: 42 * s, height: 13 * s), Paint()..color = Colors.black.withOpacity(.28));
-    canvas.drawOval(Rect.fromCenter(center: Offset(center.dx, center.dy + 7 * s), width: 30 * s, height: 25 * s), dark);
-    canvas.drawPath(Path()
-      ..moveTo(center.dx - 15 * s, center.dy + 1 * s)
-      ..lineTo(center.dx + 15 * s, center.dy + 1 * s)
-      ..lineTo(center.dx + 11 * s, center.dy + 17 * s)
-      ..lineTo(center.dx - 11 * s, center.dy + 17 * s)
-      ..close(), body);
-    canvas.drawCircle(Offset(center.dx, center.dy - 11 * s), 11 * s, armor);
-    canvas.drawCircle(Offset(center.dx - 3 * s, center.dy - 14 * s), 3 * s, Paint()..color = Colors.white.withOpacity(.8));
-    final dir = facing.normalized();
-    canvas.drawLine(Offset(center.dx + dir.x * 16 * s, center.dy + dir.y * 16 * s), Offset(center.dx + dir.x * 32 * s, center.dy + dir.y * 32 * s), Paint()..color = Colors.white..strokeWidth = 4 * s);
-  }
+import 'turret.dart';
+import 'jungle_monster.dart';
+import 'minion.dart';
+class HeroPlayerComponent extends PositionComponent with HasGameRef<MOBAOfflineGame>{
+ double maxHp=320,hp=320,mana=100,speed=185,baseDamage=28,baseSkillDamage=75,attackCooldown=0,skillCooldown=0;bool isDead=false;Vector2 facing=Vector2(1,0);
+ HeroPlayerComponent():super(position:Vector2(-2350,0),size:Vector2.all(72),anchor:Anchor.center);
+ @override void update(double dt){super.update(dt);if(isDead)return;attackCooldown=math.max(0,attackCooldown-dt);skillCooldown=math.max(0,skillCooldown-dt);mana=math.min(100,mana+dt*5);final input=gameRef.joystick.relativeDelta;if(input.length2>.01){facing=input.normalized();position+=facing*speed*dt;position.x=position.x.clamp(-2850,2850).toDouble();position.y=position.y.clamp(-1650,1650).toDouble();}if(hp<maxHp)hp=math.min(maxHp,hp+dt);}
+ void basicAttack(bool premium){if(isDead||attackCooldown>0)return;attackCooldown=premium?0.22:.45;dynamic target;double best=double.infinity;for(final e in gameRef.enemies){if(!e.isDead){final d=e.position.distanceTo(position);if(d<best&&d<420){best=d;target=e;}}}for(final m in gameRef.minions){if(!m.isRemoved&&!m.allied){final d=m.position.distanceTo(position);if(d<best&&d<350){best=d;target=m;}}}for(final m in gameRef.monsters){if(!m.dead){final d=m.position.distanceTo(position);if(d<best&&d<350){best=d;target=m;}}}for(final t in gameRef.turrets){if(!t.allied&&!t.destroyed){final d=t.position.distanceTo(position);if(d<best&&d<330){best=d;target=t;}}}final dir=target==null?facing:(target.position-position).normalized();facing=dir.clone();final dmg=premium?baseDamage*1.45:baseDamage;if(target is BotEnemyComponent)target.takeDamage(dmg);else if(target is MinionComponent)target.takeDamage(dmg);else if(target is JungleMonster)target.takeDamage(dmg);else if(target is TurretComponent)target.takeDamage(dmg*.75);}
+ void useSkill(){if(isDead||skillCooldown>0||mana<30)return;skillCooldown=5;mana-=30;for(final e in List<BotEnemyComponent>.from(gameRef.enemies)){if(!e.isDead&&e.position.distanceTo(position)<240)e.takeDamage(baseSkillDamage);}for(final m in List<MinionComponent>.from(gameRef.minions)){if(!m.isRemoved&&!m.allied&&m.position.distanceTo(position)<240)m.takeDamage(baseSkillDamage*.8);}for(final m in List<JungleMonster>.from(gameRef.monsters)){if(!m.dead&&m.position.distanceTo(position)<240)m.takeDamage(baseSkillDamage*.8);}gameRef.flashMessage('${gameRef.selectedHero.name} • SKILL AREA!');}
+ void takeDamage(double damage){if(isDead)return;hp-=damage;if(hp<=0){hp=0;isDead=true;gameRef.triggerGameOver();}}
+ void reset(){isDead=false;hp=maxHp;mana=100;attackCooldown=0;skillCooldown=0;position=Vector2(-2350,0);facing=Vector2(1,0);}
+ @override void render(Canvas c){final s=size.x/72,o=Offset(size.x/2,size.y/2);final armor=gameRef.selectedHero.id=='lyra'?const Color(0xff9c6bff):const Color(0xff39a9ff);c.drawOval(Rect.fromCenter(center:Offset(o.dx,o.dy+25*s),width:50*s,height:15*s),Paint()..color=Colors.black45);c.drawPath(Path()..moveTo(o.dx-19*s,o.dy-1*s)..lineTo(o.dx+19*s,o.dy-1*s)..lineTo(o.dx+14*s,o.dy+25*s)..lineTo(o.dx-14*s,o.dy+25*s)..close(),Paint()..color=const Color(0xff174f91));c.drawCircle(Offset(o.dx,o.dy-14*s),15*s,Paint()..color=armor);c.drawArc(Rect.fromCircle(center:Offset(o.dx,o.dy-14*s),radius:16*s),math.pi,math.pi,true,Paint()..color=const Color(0xff132d55));c.drawCircle(Offset(o.dx-5*s,o.dy-16*s),2.5*s,Paint()..color=Colors.white);c.drawCircle(Offset(o.dx+5*s,o.dy-16*s),2.5*s,Paint()..color=Colors.white);final d=facing.normalized();c.drawLine(Offset(o.dx+d.x*13*s,o.dy+d.y*13*s),Offset(o.dx+d.x*34*s,o.dy+d.y*34*s),Paint()..color=Colors.white..strokeWidth=5*s);c.drawRect(Rect.fromLTWH(5,1,size.x-10,6),Paint()..color=Colors.black87);c.drawRect(Rect.fromLTWH(5,1,(size.x-10)*math.max(0,hp/maxHp),6),Paint()..color=Colors.limeAccent);}
 }
