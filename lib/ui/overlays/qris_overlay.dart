@@ -5,7 +5,6 @@ import '../../game/moba_game.dart';
 
 class QrisOverlay extends StatefulWidget {
   final MOBAOfflineGame game;
-  
   const QrisOverlay({super.key, required this.game});
 
   @override
@@ -13,7 +12,7 @@ class QrisOverlay extends StatefulWidget {
 }
 
 class _QrisOverlayState extends State<QrisOverlay> {
-  int timeLeft = 5; // Timer psikologis 5 detik
+  int timeLeft = 5;
   late Timer countdownTimer;
   final TextEditingController _verifyController = TextEditingController();
 
@@ -26,7 +25,7 @@ class _QrisOverlayState extends State<QrisOverlay> {
   void _startTimer() {
     countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (timeLeft > 0) {
-        setState(() => timeLeft--);
+        if (mounted) setState(() => timeLeft--);
       } else {
         timer.cancel();
         _forceGameOver();
@@ -35,32 +34,23 @@ class _QrisOverlayState extends State<QrisOverlay> {
   }
 
   void _forceGameOver() {
-    // Jika waktu habis, hilangkan pop-up dan kembalikan ke menu (atau biarkan mati)
     widget.game.overlays.remove('QRIS_PAYWALL');
     widget.game.overlays.add('GAME_OVER_NORMAL');
   }
 
   Future<void> _activatePremium() async {
-    if (_verifyController.text.isNotEmpty) {
+    if (_verifyController.text.trim().isNotEmpty) {
       countdownTimer.cancel();
-      
-      // 1. Simpan status pembelian secara permanen di HP
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('is_premium_weapon', true);
-      
-      // 2. Terapkan efek Auto-Win langsung ke dalam game engine
       widget.game.isPremiumWeapon = true;
-      widget.game.player.hp = 100.0; // Bangkit instan (Full HP)
+      widget.game.player.hp = widget.game.player.maxHp;
       widget.game.player.isDead = false;
-      widget.game.player.paint.color = Colors.blueAccent; // Kembalikan warna hero
-      
-      // 3. Tutup overlay dan lanjutkan game
       widget.game.overlays.remove('QRIS_PAYWALL');
-      widget.game.resumeEngine(); // Mainkan lagi
+      widget.game.resumeEngine();
     } else {
-      // Validasi sederhana jika kosong
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Masukkan nama/kode unik terlebih dahulu!")),
+        const SnackBar(content: Text('Masukkan nama/kode unik terlebih dahulu!')),
       );
     }
   }
@@ -68,7 +58,7 @@ class _QrisOverlayState extends State<QrisOverlay> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black.withOpacity(0.85), // Latar gelap dramatis
+      color: Colors.black.withOpacity(0.85),
       child: Center(
         child: Container(
           width: 320,
@@ -76,23 +66,16 @@ class _QrisOverlayState extends State<QrisOverlay> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.amber, width: 3), // Border emas premium
+            border: Border.all(color: Colors.amber, width: 3),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "WAKTU TERSISA: 00:0$timeLeft",
-                style: const TextStyle(
-                  color: Colors.red, 
-                  fontWeight: FontWeight.bold, 
-                  fontSize: 22
-                ),
+                'WAKTU TERSISA: 00:0$timeLeft',
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 22),
               ),
               const SizedBox(height: 15),
-              
-              // Gambar QRIS
-              // Pastikan 'assets/images/qris_gopay.png' sudah ada di folder Anda
               Container(
                 height: 150,
                 width: 150,
@@ -100,42 +83,34 @@ class _QrisOverlayState extends State<QrisOverlay> {
                 child: Image.asset(
                   'assets/images/qris_gopay.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => 
+                  errorBuilder: (context, error, stackTrace) =>
                       const Icon(Icons.qr_code_2, size: 100, color: Colors.black54),
                 ),
               ),
-              
               const SizedBox(height: 15),
               const Text(
-                "Bangkit Instan dengan HP Penuh + Damage Laser 3 Arah?\n\nCukup Scan QRIS Rp2.000!",
+                'Bangkit Instan dengan HP Penuh + Damage Laser 3 Arah?\n\nCukup Scan QRIS Rp2.000!',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               const SizedBox(height: 15),
-              
               TextField(
                 controller: _verifyController,
                 decoration: InputDecoration(
-                  hintText: "Nama Pengirim / Kode Unik",
+                  hintText: 'Nama Pengirim / Kode Unik',
                   filled: true,
                   fillColor: Colors.grey[100],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
               const SizedBox(height: 15),
-              
               SizedBox(
                 width: double.infinity,
                 height: 45,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber[700],
-                    foregroundColor: Colors.white,
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.amber[700], foregroundColor: Colors.white),
                   onPressed: _activatePremium,
-                  child: const Text("AKTIFKAN SEKARANG", style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text('AKTIFKAN SEKARANG', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
