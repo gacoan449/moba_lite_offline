@@ -14,14 +14,14 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
   int gold = 0;
   int xp = 0;
   int heroRank = 1;
-  String quest = 'Kalahkan 3 musuh untuk memulai petualangan';
+  String quest = 'Kalahkan musuh untuk memulai petualangan';
   double messageTimer = 0;
+  final ValueNotifier<int> hudTick = ValueNotifier(0);
 
   late HeroPlayerComponent player;
   late JoystickComponent joystick;
   late HudButtonComponent attackButton;
   late HudButtonComponent skillButton;
-
   final List<BotEnemyComponent> enemies = [];
 
   MOBAOfflineGame({required this.initialPremiumStatus}) : isPremiumWeapon = initialPremiumStatus;
@@ -56,7 +56,6 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
       onPressed: player.useSkill,
     );
     camera.viewport.add(skillButton);
-
     spawnWave();
   }
 
@@ -65,6 +64,7 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
     super.update(dt);
     enemies.removeWhere((e) => e.isRemoved);
     messageTimer = max(0, messageTimer - dt);
+    hudTick.value++;
   }
 
   void spawnWave() {
@@ -77,7 +77,7 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
       enemies.add(enemy);
       world.add(enemy);
     }
-    quest = 'Wave $currentLevel: kalahkan ${count} musuh';
+    quest = 'Wave $currentLevel: kalahkan $count musuh';
   }
 
   void onEnemyKilled() {
@@ -95,32 +95,22 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
     }
   }
 
-  void flashMessage(String text) {
-    quest = text;
-    messageTimer = 2;
-  }
+  void flashMessage(String text) { quest = text; messageTimer = 2; }
 
   void resetGame() {
     for (final e in List<BotEnemyComponent>.from(enemies)) e.removeFromParent();
     enemies.clear();
-    currentLevel = 1;
-    enemyKilled = 0;
-    gold = 0;
-    xp = 0;
-    heroRank = 1;
+    currentLevel = 1; enemyKilled = 0; gold = 0; xp = 0; heroRank = 1;
     player.reset();
     overlays.remove('GAME_OVER_NORMAL');
     overlays.remove('QRIS_PAYWALL');
     spawnWave();
   }
 
-  void triggerGameOver() {
-    overlays.add('GAME_OVER_NORMAL');
-  }
+  void triggerGameOver() => overlays.add('GAME_OVER_NORMAL');
 
   @override
   void render(Canvas canvas) {
-    // Large procedural arena: paths, grass patches and river-like center.
     canvas.drawRect(const Rect.fromLTWH(-4000, -4000, 8000, 8000), Paint()..color = const Color(0xFF274E2C));
     final grid = Paint()..color = const Color(0xFF315E35)..strokeWidth = 2;
     for (int x = -4000; x <= 4000; x += 160) canvas.drawLine(Offset(x.toDouble(), -4000), Offset(x.toDouble(), 4000), grid);
