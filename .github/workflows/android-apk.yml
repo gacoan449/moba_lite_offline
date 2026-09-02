@@ -25,6 +25,14 @@ jobs:
       - run: rm -rf test
       - run: flutter pub get
       - run: flutter analyze
+
+      # flutter_angle (used by three_js) requires CMake 3.31.4.
+      # Install that exact SDK component before Gradle configures flutter_angle.
+      - name: Install required Android CMake
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "cmake;3.31.4"
+
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
