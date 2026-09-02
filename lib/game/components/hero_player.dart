@@ -8,6 +8,7 @@ import 'bot_enemy.dart';
 import 'jungle_monster.dart';
 import 'minion.dart';
 import 'turret.dart';
+import 'world_render_3d.dart';
 
 class HeroPlayerComponent extends PositionComponent
     with HasGameRef<MOBAOfflineGame> {
@@ -21,21 +22,20 @@ class HeroPlayerComponent extends PositionComponent
   double skillCooldown = 0;
   bool isDead = false;
   Vector2 facing = Vector2(1, 0);
+  double _visualTime = 0;
 
   HeroPlayerComponent()
       : super(
           position: Vector2(-2350, 0),
-          size: Vector2.all(72),
+          size: Vector2.all(92),
           anchor: Anchor.center,
         );
 
   @override
   void update(double dt) {
     super.update(dt);
-    if (isDead) {
-      return;
-    }
-
+    if (isDead) return;
+    _visualTime += dt;
     attackCooldown = math.max(0, attackCooldown - dt).toDouble();
     skillCooldown = math.max(0, skillCooldown - dt).toDouble();
     mana = math.min(100, mana + dt * 5).toDouble();
@@ -47,111 +47,67 @@ class HeroPlayerComponent extends PositionComponent
       position.x = position.x.clamp(-2850, 2850).toDouble();
       position.y = position.y.clamp(-1650, 1650).toDouble();
     }
-
-    if (hp < maxHp) {
-      hp = math.min(maxHp, hp + dt).toDouble();
-    }
+    if (hp < maxHp) hp = math.min(maxHp, hp + dt).toDouble();
   }
 
   void basicAttack(bool premium) {
-    if (isDead || attackCooldown > 0) {
-      return;
-    }
-
+    if (isDead || attackCooldown > 0) return;
     attackCooldown = premium ? 0.22 : 0.45;
     dynamic target;
     double bestDistance = double.infinity;
-
     for (final enemy in gameRef.enemies) {
       if (!enemy.isDead) {
-        final distance = enemy.position.distanceTo(position);
-        if (distance < bestDistance && distance < 420) {
-          bestDistance = distance;
-          target = enemy;
-        }
+        final d = enemy.position.distanceTo(position);
+        if (d < bestDistance && d < 420) { bestDistance = d; target = enemy; }
       }
     }
-
     for (final minion in gameRef.minions) {
       if (!minion.isRemoved && !minion.allied) {
-        final distance = minion.position.distanceTo(position);
-        if (distance < bestDistance && distance < 350) {
-          bestDistance = distance;
-          target = minion;
-        }
+        final d = minion.position.distanceTo(position);
+        if (d < bestDistance && d < 350) { bestDistance = d; target = minion; }
       }
     }
-
     for (final monster in gameRef.monsters) {
       if (!monster.dead) {
-        final distance = monster.position.distanceTo(position);
-        if (distance < bestDistance && distance < 350) {
-          bestDistance = distance;
-          target = monster;
-        }
+        final d = monster.position.distanceTo(position);
+        if (d < bestDistance && d < 350) { bestDistance = d; target = monster; }
       }
     }
-
     for (final turret in gameRef.turrets) {
       if (!turret.allied && !turret.destroyed) {
-        final distance = turret.position.distanceTo(position);
-        if (distance < bestDistance && distance < 330) {
-          bestDistance = distance;
-          target = turret;
-        }
+        final d = turret.position.distanceTo(position);
+        if (d < bestDistance && d < 330) { bestDistance = d; target = turret; }
       }
     }
-
-    final Vector2 direction = target == null
-        ? facing
-        : (target.position - position).normalized();
+    final direction = target == null ? facing : (target.position - position).normalized();
     facing = direction.clone();
     final damage = premium ? baseDamage * 1.45 : baseDamage;
-
-    if (target is BotEnemyComponent) {
-      target.takeDamage(damage);
-    } else if (target is MinionComponent) {
-      target.takeDamage(damage);
-    } else if (target is JungleMonster) {
-      target.takeDamage(damage);
-    } else if (target is TurretComponent) {
-      target.takeDamage(damage * .75);
-    }
+    if (target is BotEnemyComponent) target.takeDamage(damage);
+    else if (target is MinionComponent) target.takeDamage(damage);
+    else if (target is JungleMonster) target.takeDamage(damage);
+    else if (target is TurretComponent) target.takeDamage(damage * .75);
   }
 
   void useSkill() {
-    if (isDead || skillCooldown > 0 || mana < 30) {
-      return;
-    }
-
+    if (isDead || skillCooldown > 0 || mana < 30) return;
     skillCooldown = 5;
     mana -= 30;
-
     for (final enemy in List<BotEnemyComponent>.from(gameRef.enemies)) {
-      if (!enemy.isDead && enemy.position.distanceTo(position) < 240) {
-        enemy.takeDamage(baseSkillDamage);
-      }
+      if (!enemy.isDead && enemy.position.distanceTo(position) < 240) enemy.takeDamage(baseSkillDamage);
     }
     for (final minion in List<MinionComponent>.from(gameRef.minions)) {
-      if (!minion.isRemoved &&
-          !minion.allied &&
-          minion.position.distanceTo(position) < 240) {
+      if (!minion.isRemoved && !minion.allied && minion.position.distanceTo(position) < 240) {
         minion.takeDamage(baseSkillDamage * .8);
       }
     }
     for (final monster in List<JungleMonster>.from(gameRef.monsters)) {
-      if (!monster.dead && monster.position.distanceTo(position) < 240) {
-        monster.takeDamage(baseSkillDamage * .8);
-      }
+      if (!monster.dead && monster.position.distanceTo(position) < 240) monster.takeDamage(baseSkillDamage * .8);
     }
-
     gameRef.flashMessage('${gameRef.selectedHero.name} • SKILL AREA!');
   }
 
   void takeDamage(double damage) {
-    if (isDead) {
-      return;
-    }
+    if (isDead) return;
     hp -= damage;
     if (hp <= 0) {
       hp = 0;
@@ -172,84 +128,86 @@ class HeroPlayerComponent extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    final scale = size.x / 72;
+    super.render(canvas);
     final origin = Offset(size.x / 2, size.y / 2);
+    final pulse = math.sin(_visualTime * 5);
     final armor = gameRef.selectedHero.id == 'lyra'
         ? const Color(0xff9c6bff)
         : const Color(0xff39a9ff);
 
+    // Contact shadow + floating sci-fi energy ring create depth.
+    WorldRender3D.shadow(canvas, Offset(origin.dx, origin.dy + 31), 58, 17);
     canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(origin.dx, origin.dy + 25 * scale),
-        width: 50 * scale,
-        height: 15 * scale,
-      ),
-      Paint()..color = Colors.black45,
+      Rect.fromCenter(center: Offset(origin.dx, origin.dy + 24), width: 48, height: 15),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = armor.withOpacity(.45 + pulse * .08),
     );
 
+    WorldRender3D.armoredBody(
+      canvas,
+      center: Offset(origin.dx, origin.dy + 4),
+      width: 58,
+      height: 58,
+      primary: const Color(0xff174f91),
+      secondary: armor,
+      phase: _visualTime,
+    );
+
+    // Head with helmet visor, shoulder armor and glowing core.
+    canvas.drawCircle(Offset(origin.dx, origin.dy - 21), 17, Paint()..color = armor);
     canvas.drawPath(
       Path()
-        ..moveTo(origin.dx - 19 * scale, origin.dy - scale)
-        ..lineTo(origin.dx + 19 * scale, origin.dy - scale)
-        ..lineTo(origin.dx + 14 * scale, origin.dy + 25 * scale)
-        ..lineTo(origin.dx - 14 * scale, origin.dy + 25 * scale)
+        ..moveTo(origin.dx - 17, origin.dy - 22)
+        ..lineTo(origin.dx, origin.dy - 34)
+        ..lineTo(origin.dx + 17, origin.dy - 22)
+        ..lineTo(origin.dx + 12, origin.dy - 13)
+        ..lineTo(origin.dx - 12, origin.dy - 13)
         ..close(),
-      Paint()..color = const Color(0xff174f91),
+      Paint()..color = const Color(0xff10213b),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset(origin.dx, origin.dy - 19), width: 21, height: 7),
+      Paint()..color = Colors.white.withOpacity(.78),
+    );
+    canvas.drawCircle(
+      Offset(origin.dx, origin.dy + 3),
+      5 + pulse * .7,
+      Paint()..color = Colors.cyanAccent.withOpacity(.8),
     );
 
-    canvas.drawCircle(
-      Offset(origin.dx, origin.dy - 14 * scale),
-      15 * scale,
-      Paint()..color = armor,
-    );
-    canvas.drawArc(
-      Rect.fromCircle(
-        center: Offset(origin.dx, origin.dy - 14 * scale),
-        radius: 16 * scale,
-      ),
-      math.pi,
-      math.pi,
-      true,
-      Paint()..color = const Color(0xff132d55),
-    );
-    canvas.drawCircle(
-      Offset(origin.dx - 5 * scale, origin.dy - 16 * scale),
-      2.5 * scale,
-      Paint()..color = Colors.white,
-    );
-    canvas.drawCircle(
-      Offset(origin.dx + 5 * scale, origin.dy - 16 * scale),
-      2.5 * scale,
-      Paint()..color = Colors.white,
-    );
+    // Shoulder plates give a readable humanoid silhouette.
+    for (final dx in [-25.0, 25.0]) {
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset(origin.dx + dx, origin.dy + 3), width: 18, height: 12),
+        Paint()..color = armor.withOpacity(.92),
+      );
+    }
 
     final direction = facing.normalized();
+    final weaponStart = Offset(
+      origin.dx + direction.x * 17,
+      origin.dy + direction.y * 17,
+    );
+    final weaponEnd = Offset(
+      origin.dx + direction.x * 39,
+      origin.dy + direction.y * 39,
+    );
     canvas.drawLine(
-      Offset(
-        origin.dx + direction.x * 13 * scale,
-        origin.dy + direction.y * 13 * scale,
-      ),
-      Offset(
-        origin.dx + direction.x * 34 * scale,
-        origin.dy + direction.y * 34 * scale,
-      ),
-      Paint()
-        ..color = Colors.white
-        ..strokeWidth = 5 * scale,
+      weaponStart,
+      weaponEnd,
+      Paint()..color = Colors.white..strokeWidth = 6,
     );
+    canvas.drawCircle(weaponEnd, 4 + pulse.abs(), Paint()..color = Colors.cyanAccent.withOpacity(.7));
 
-    canvas.drawRect(
-      Rect.fromLTWH(5, 1, size.x - 10, 6),
-      Paint()..color = Colors.black87,
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(
-        5,
-        1,
-        (size.x - 10) * math.max(0, hp / maxHp).toDouble(),
-        6,
-      ),
-      Paint()..color = Colors.limeAccent,
+    WorldRender3D.hpBar(
+      canvas,
+      x: 7,
+      y: 2,
+      width: size.x - 14,
+      hp: hp,
+      maxHp: maxHp,
     );
   }
 }
