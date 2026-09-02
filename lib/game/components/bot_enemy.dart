@@ -1,85 +1,61 @@
+import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flame/collisions.dart';
 import 'package:flutter/material.dart';
 import '../moba_game.dart';
 
-class BotEnemyComponent extends CircleComponent with HasGameRef<MOBAOfflineGame> {
-  late double maxHp;
-  late double currentHp;
-  late double speed;
-  late double attackDamage;
+class BotEnemyComponent extends PositionComponent with HasCollisionCallbacks, HasGameRef<MOBAOfflineGame> {
+  double maxHp;
+  double currentHp;
+  final double speed;
+  final double attackDamage;
+  double attackTimer = 0;
+  bool isDead = false;
 
-  late RectangleComponent hpBar;
-
-  BotEnemyComponent(Vector2 spawnPosition) : super(
-    radius: 20,
-    position: spawnPosition,
-    anchor: Anchor.center,
-    paint: Paint()..color = Colors.redAccent,
-  );
+  BotEnemyComponent(Vector2 spawnPosition)
+      : maxHp = 65 + 18 * spawnPosition.length / 800,
+        currentHp = 65 + 18 * spawnPosition.length / 800,
+        speed = 55,
+        attackDamage = 8,
+        super(position: spawnPosition, size: Vector2.all(52), anchor: Anchor.center);
 
   @override
-  Future<void> onLoad() async {
-    add(CircleHitbox());
-
-    // DYNAMIC DIFFICULTY (Dinding Frustrasi Psikologis)
-    if (gameRef.currentLevel <= 3) {
-      maxHp = 50.0;
-      speed = 60.0;
-      attackDamage = 5.0; // Geli-geli
-    } else {
-      maxHp = 1000.0; // Sangat tebal
-      speed = 190.0; // Lebih cepat dari player
-      attackDamage = 45.0; // Sekali senggol kritis
-      paint.color = Colors.purple; // Ganti warna jadi ungu tanda bahaya
-    }
-    currentHp = maxHp;
-
-    // Visual HP Bar Musuh
-    hpBar = RectangleComponent(
-      size: Vector2(40, 5),
-      position: Vector2(-20, -30),
-      paint: Paint()..color = Colors.red,
-    );
-    add(hpBar);
-  }
+  Future<void> onLoad() async => add(CircleHitbox(radius: 18));
 
   @override
   void update(double dt) {
     super.update(dt);
-    if (gameRef.player.isDead) return; // Berhenti ngejar kalau player mati
-
-    Vector2 playerPos = gameRef.player.position;
-    Vector2 directionToPlayer = playerPos - position;
-    double distance = directionToPlayer.length;
-
-    // AI LOGIC: Kejar Pemain
-    if (gameRef.currentLevel >= 4) {
-      // Level 4 ke atas: Jarak pandang luas (500) dan sangat agresif
-      if (distance < 500 && distance > 30) {
-        position += directionToPlayer.normalized() * speed * dt;
-        angle = directionToPlayer.screenAngle();
-      }
-    } else {
-      // Level 1-3: Jarak pandang pendek (250)
-      if (distance < 250 && distance > 30) {
-        position += directionToPlayer.normalized() * speed * dt;
-      }
-    }
-
-    // AI LOGIC: Menyerang (Tabrakan Jarak Dekat)
-    if (distance <= 40) {
-      gameRef.player.takeDamage(attackDamage * dt); // Drain HP Player per frame
+    if (isDead || gameRef.player.isDead) return;
+    attackTimer = math.max(0, attackTimer - dt);
+    final delta = gameRef.player.position - position;
+    final distance = delta.length;
+    final aggro = 700 + gameRef.currentLevel * 30;
+    if (distance < aggro && distance > 52) position += delta.normalized() * (speed + gameRef.currentLevel * 5) * dt;
+    if (distance <= 58 && attackTimer <= 0) {
+      gameRef.player.takeDamage(attackDamage + gameRef.currentLevel * 1.5);
+      attackTimer = .65;
     }
   }
 
   void takeDamage(double damage) {
+    if (isDead) return;
     currentHp -= damage;
-    hpBar.size.x = 40 * (currentHp / maxHp); // Update bar darah
-
     if (currentHp <= 0) {
+      isDead = true;
       removeFromParent();
       gameRef.onEnemyKilled();
     }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    final c = Offset(size.x / 2, size.y / 2);
+    canvas.drawOval(Rect.fromCenter(center: Offset(c.dx, c.dy + 15), width: 38, height: 12), Paint()..color = Colors.black.withOpacity(.28));
+    canvas.drawCircle(Offset(c.dx, c.dy + 4), 17, Paint()..color = const Color(0xFF8E2430));
+    canvas.drawCircle(Offset(c.dx, c.dy - 12), 12, Paint()..color = const Color(0xFFD94A54));
+    canvas.drawCircle(Offset(c.dx - 4, c.dy - 15), 3, Paint()..color = Colors.white.withOpacity(.7));
+    canvas.drawRect(Rect.fromLTWH(6, 0, 40, 5), Paint()..color = Colors.black87);
+    canvas.drawRect(Rect.fromLTWH(6, 0, 40 * math.max(0, currentHp / maxHp), 5), Paint()..color = Colors.limeAccent);
   }
 }
