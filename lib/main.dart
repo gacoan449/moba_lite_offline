@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'game/moba_3d_phase5.dart';
+import 'game/moba_3d_phase6.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +20,6 @@ class ArenaLegendsApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Arena Legends 3D',
         theme: ThemeData.dark(useMaterial3: true),
-        home: const Moba3DPhase5(),
+        home: const Moba3DPhase6(),
       );
 }
