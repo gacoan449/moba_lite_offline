@@ -57,6 +57,7 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
     );
     camera.viewport.add(skillButton);
     spawnWave();
+    overlays.add('HUD');
   }
 
   @override
@@ -95,19 +96,32 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
     }
   }
 
-  void flashMessage(String text) { quest = text; messageTimer = 2; }
+  void flashMessage(String text) {
+    quest = text;
+    messageTimer = 2;
+  }
 
   void resetGame() {
     for (final e in List<BotEnemyComponent>.from(enemies)) e.removeFromParent();
     enemies.clear();
-    currentLevel = 1; enemyKilled = 0; gold = 0; xp = 0; heroRank = 1;
+    currentLevel = 1;
+    enemyKilled = 0;
+    gold = 0;
+    xp = 0;
+    heroRank = 1;
+    player.maxHp = 320;
+    player.speed = 185;
     player.reset();
     overlays.remove('GAME_OVER_NORMAL');
     overlays.remove('QRIS_PAYWALL');
     spawnWave();
+    resumeEngine();
   }
 
-  void triggerGameOver() => overlays.add('GAME_OVER_NORMAL');
+  void triggerGameOver() {
+    overlays.add('GAME_OVER_NORMAL');
+    pauseEngine();
+  }
 
   @override
   void render(Canvas canvas) {
