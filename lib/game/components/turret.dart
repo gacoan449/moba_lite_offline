@@ -18,7 +18,7 @@ class TurretComponent extends PositionComponent with HasGameReference<MOBAOfflin
     if (destroyed) return;
     hp = math.max(0.0, hp - damage).toDouble();
     if (destroyed) {
-      gameRef.onTurretDestroyed(this);
+      game.onTurretDestroyed(this);
       removeFromParent();
     }
   }
@@ -30,15 +30,15 @@ class TurretComponent extends PositionComponent with HasGameReference<MOBAOfflin
     timer = math.max(0.0, timer - dt).toDouble();
     if (timer > 0) return;
     if (allied) {
-      for (final enemy in gameRef.enemies) {
+      for (final enemy in game.enemies) {
         if (!enemy.isDead && enemy.position.distanceTo(position) < 430) {
           enemy.takeDamage(35);
           timer = 0.9;
           break;
         }
       }
-    } else if (!gameRef.player.isDead && gameRef.player.position.distanceTo(position) < 430) {
-      gameRef.player.takeDamage(18);
+    } else if (!game.player.isDead && game.player.position.distanceTo(position) < 430) {
+      game.player.takeDamage(18);
       timer = 0.9;
     }
   }
