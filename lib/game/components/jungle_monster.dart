@@ -1,12 +1,10 @@
 import 'dart:math' as math;
-
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-
 import '../moba_game.dart';
 import 'world_render_3d.dart';
 
-class JungleMonster extends PositionComponent with HasGameRef<MOBAOfflineGame> {
+class JungleMonster extends PositionComponent with HasGameReference<MOBAOfflineGame> {
   final bool boss;
   double hp;
   double timer = 0;
@@ -47,44 +45,18 @@ class JungleMonster extends PositionComponent with HasGameRef<MOBAOfflineGame> {
     final pulse = math.sin(visualTime * (boss ? 4 : 7));
     final primary = boss ? const Color(0xff5b168f) : const Color(0xff9a531d);
     final secondary = boss ? const Color(0xffffc13b) : const Color(0xffffa342);
-
     WorldRender3D.shadow(canvas, Offset(r, r + size.y * .29), size.x * .82, size.y * .22);
-    WorldRender3D.armoredBody(
-      canvas,
-      center: Offset(r, r + 7),
-      width: size.x * .72,
-      height: size.y * .70,
-      primary: primary,
-      secondary: secondary,
-      phase: visualTime,
-    );
+    WorldRender3D.armoredBody(canvas, center: Offset(r, r + 7), width: size.x * .72, height: size.y * .70,
+      primary: primary, secondary: secondary, phase: visualTime);
     canvas.drawCircle(Offset(r, r - size.y * .18), size.x * .22, Paint()..color = secondary);
     canvas.drawCircle(Offset(r - r * .25, r - r * .19), r * .11, Paint()..color = Colors.redAccent);
     canvas.drawCircle(Offset(r + r * .25, r - r * .19), r * .11, Paint()..color = Colors.redAccent);
-    final mouthPaint = Paint()
-      ..color = Colors.black87
-      ..strokeWidth = math.max(2, r * .06);
-    canvas.drawLine(
-      Offset(r - r * .16, r + r * .02),
-      Offset(r + r * .16, r + r * .02),
-      mouthPaint,
-    );
+    final mouthPaint = Paint()..color = Colors.black87..strokeWidth = math.max(2, r * .06);
+    canvas.drawLine(Offset(r - r * .16, r + r * .02), Offset(r + r * .16, r + r * .02), mouthPaint);
     if (boss) {
-      WorldRender3D.crystal(
-        canvas,
-        center: Offset(r, r - r * .48 + pulse * 2),
-        radius: r * .18,
-        color: Colors.cyanAccent,
-        phase: visualTime,
-      );
-      canvas.drawCircle(
-        c,
-        r * (.86 + pulse * .025),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3
-          ..color = Colors.amber.withOpacity(.75),
-      );
+      WorldRender3D.crystal(canvas, center: Offset(r, r - r * .48 + pulse * 2), radius: r * .18,
+        color: Colors.cyanAccent, phase: visualTime);
+      canvas.drawCircle(c, r * (.86 + pulse * .025), Paint()..style = PaintingStyle.stroke..strokeWidth = 3..color = Colors.amber.withValues(alpha: .75));
     }
     WorldRender3D.hpBar(canvas, x: 5, y: 1, width: size.x - 10, hp: hp, maxHp: maxHp);
   }
