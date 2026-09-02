@@ -103,7 +103,9 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
   }
 
   void resetGame() {
-    for (final e in List<BotEnemyComponent>.from(enemies)) e.removeFromParent();
+    for (final e in List<BotEnemyComponent>.from(enemies)) {
+      e.removeFromParent();
+    }
     enemies.clear();
     currentLevel = 1;
     enemyKilled = 0;
@@ -128,8 +130,12 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
   void render(Canvas canvas) {
     canvas.drawRect(const Rect.fromLTWH(-4000, -4000, 8000, 8000), Paint()..color = const Color(0xFF274E2C));
     final grid = Paint()..color = const Color(0xFF315E35)..strokeWidth = 2;
-    for (int x = -4000; x <= 4000; x += 160) canvas.drawLine(Offset(x.toDouble(), -4000), Offset(x.toDouble(), 4000), grid);
-    for (int y = -4000; y <= 4000; y += 160) canvas.drawLine(Offset(-4000, y.toDouble()), Offset(4000, y.toDouble()), grid);
+    for (int x = -4000; x <= 4000; x += 160) {
+      canvas.drawLine(Offset(x.toDouble(), -4000), Offset(x.toDouble(), 4000), grid);
+    }
+    for (int y = -4000; y <= 4000; y += 160) {
+      canvas.drawLine(Offset(-4000, y.toDouble()), Offset(4000, y.toDouble()), grid);
+    }
     canvas.drawRect(const Rect.fromLTWH(-90, -4000, 180, 8000), Paint()..color = const Color(0xFF285A7A).withOpacity(.75));
     super.render(canvas);
   }
