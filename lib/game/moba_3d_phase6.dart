@@ -162,7 +162,7 @@ class _Moba3DPhase6State extends State<Moba3DPhase6> {
         body: Stack(
           children: <Widget>[
             const Positioned.fill(child: Moba3DPhase5()),
-            Positioned.fill(
+            const Positioned.fill(
               child: IgnorePointer(
                 child: _Phase6Overlay(
                   temporal: true,
