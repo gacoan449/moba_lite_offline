@@ -1,8 +1,8 @@
 name: moba_lite_offline
-description: A full 3D fantasy MOBA for Flutter with original battlefield, heroes, turrets, jungle, touch controls and keyboard support.
+description: A lightweight original 2.5D fantasy MOBA for Flutter with native rendering and touch controls.
 publish_to: 'none'
 
-version: 2.0.0+3
+version: 2.1.0+4
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -12,7 +12,6 @@ dependencies:
     sdk: flutter
   shared_preferences: ^2.2.2
   flame: ^1.23.0
-  three_js: ^0.2.7
 
 dev_dependencies:
   flutter_test:
