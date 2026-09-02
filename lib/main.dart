@@ -14,15 +14,15 @@ void main() async {
       body: GameWidget<MOBAOfflineGame>(
         game: game,
         overlayBuilderMap: {
-          'HUD': (context, game) => SafeArea(
-            child: IgnorePointer(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: ValueListenableBuilder(
-                    valueListenable: game.player,
-                    builder: (_, __, ___) => Container(
+          'HUD': (context, game) => ValueListenableBuilder<int>(
+            valueListenable: game.hudTick,
+            builder: (_, __, ___) => SafeArea(
+              child: IgnorePointer(
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(color: Colors.black.withOpacity(.65), borderRadius: BorderRadius.circular(16)),
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
