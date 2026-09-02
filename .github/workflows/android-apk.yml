@@ -12,15 +12,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5'
+          # three_js 0.2.x requires Dart >= 3.7.0. Flutter 3.47.2
+          # ships with a compatible Dart SDK, while keeping the stable
+          # Android build toolchain used by this project.
+          flutter-version: '3.47.2'
           channel: stable
+          cache: true
 
-      # The repository contains the Flutter/Dart game code but was missing
-      # the Android platform project. Generate a clean Android host project
-      # before resolving packages and building the APK.
+      # Generate only the Android host project. This preserves the game's
+      # Dart/lib source while ensuring Android Gradle files match the SDK.
       - run: flutter create --platforms=android --project-name=moba_lite_offline .
-      # flutter create generates a default widget_test.dart that expects MyApp.
-      # This game uses its own GameWidget entry point, so remove that generated test.
       - run: rm -rf test
       - run: flutter pub get
       - run: flutter analyze
