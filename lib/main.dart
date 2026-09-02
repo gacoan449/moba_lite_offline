@@ -20,22 +20,19 @@ void main() async {
             valueListenable: game.hudTick,
             builder: (_, __, ___) => SafeArea(
               child: Stack(children: [
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    margin: const EdgeInsets.all(12),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                    decoration: BoxDecoration(color: Colors.black.withOpacity(.72), borderRadius: BorderRadius.circular(18)),
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      Text('⚔️ ARENA LEGENDS 3D  •  ${game.selectedHero.name}  •  ${game.selectedHero.role}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 5),
-                      SizedBox(width: 285, child: LinearProgressIndicator(value: game.player.hp / game.player.maxHp, minHeight: 7)),
-                      const SizedBox(height: 4),
-                      Text('❤️ ${game.player.hp.ceil()}  💧 ${game.player.mana.ceil()}  🪙 ${game.gold}  🟡 ${game.coins}  ☠ ${game.enemyKilled}'),
-                      Text(game.quest, style: const TextStyle(color: Colors.amberAccent, fontSize: 11)),
-                    ]),
-                  ),
-                ),
+                Align(alignment: Alignment.topCenter, child: Container(
+                  margin: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(color: Colors.black.withOpacity(.72), borderRadius: BorderRadius.circular(18)),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Text('⚔️ ARENA LEGENDS 3D  •  ${game.selectedHero.name}  •  ${game.selectedHero.role}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 5),
+                    SizedBox(width: 285, child: LinearProgressIndicator(value: game.player.hp / game.player.maxHp, minHeight: 7)),
+                    const SizedBox(height: 4),
+                    Text('❤️ ${game.player.hp.ceil()}  💧 ${game.player.mana.ceil()}  🪙 ${game.gold}  🟡 ${game.coins}  ☠ ${game.enemyKilled}'),
+                    Text(game.quest, style: const TextStyle(color: Colors.amberAccent, fontSize: 11)),
+                  ]),
+                )),
                 Positioned(top: 92, right: 10, child: Column(children: [
                   _MenuButton(icon: Icons.people_alt, label: 'HERO', onTap: () => _showHeroes(context, game)),
                   _MenuButton(icon: Icons.auto_awesome, label: 'SKIN', onTap: () => _showSkins(context, game)),
@@ -45,21 +42,16 @@ void main() async {
               ]),
             ),
           ),
-          'GAME_OVER_NORMAL': (context, game) => Center(
-            child: Card(
-              color: Colors.black87,
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Text('PERTEMPURAN BERAKHIR', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 10),
-                  Text('Level ${game.currentLevel} • ${game.enemyKilled} musuh • ${game.gold} gold'),
-                  const SizedBox(height: 18),
-                  ElevatedButton(onPressed: game.resetGame, child: const Text('Main Lagi')),
-                ]),
-              ),
-            ),
-          ),
+          'GAME_OVER_NORMAL': (context, game) => Center(child: Card(
+            color: Colors.black87,
+            child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Text('PERTEMPURAN BERAKHIR', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              Text('Level ${game.currentLevel} • ${game.enemyKilled} musuh • ${game.gold} gold'),
+              const SizedBox(height: 18),
+              ElevatedButton(onPressed: game.resetGame, child: const Text('Main Lagi')),
+            ])),
+          )),
         },
         initialActiveOverlays: const ['HUD'],
       ),
@@ -73,10 +65,9 @@ class _MenuButton extends StatelessWidget {
   final VoidCallback onTap;
   const _MenuButton({required this.icon, required this.label, required this.onTap});
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 7),
-    child: ElevatedButton.icon(onPressed: onTap, icon: Icon(icon, size: 17), label: Text(label, style: const TextStyle(fontSize: 11))),
-  );
+  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 7), child: ElevatedButton.icon(
+    onPressed: onTap, icon: Icon(icon, size: 17), label: Text(label, style: const TextStyle(fontSize: 11)),
+  ));
 }
 
 class _AdRewardButton extends StatelessWidget {
@@ -86,9 +77,7 @@ class _AdRewardButton extends StatelessWidget {
   Widget build(BuildContext context) => FilledButton.icon(
     onPressed: () async {
       await game.onRewardedAdCompleted();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reward +100 coin diterapkan. Hubungkan callback ini ke Google AdMob Rewarded Ad.')));
-      }
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Hook reward aktif: sambungkan callback ini ke Google AdMob Rewarded Ad.')));
     },
     icon: const Icon(Icons.ondemand_video),
     label: const Text('TONTON IKLAN +100', style: TextStyle(fontSize: 11)),
@@ -96,16 +85,13 @@ class _AdRewardButton extends StatelessWidget {
 }
 
 void _showHeroes(BuildContext context, MOBAOfflineGame game) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: const Color(0xFF101614),
-    builder: (_) => SafeArea(child: SizedBox(height: MediaQuery.of(context).size.height * .72, child: ValueListenableBuilder<int>(
+  showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: const Color(0xFF101614), builder: (_) => SafeArea(
+    child: SizedBox(height: MediaQuery.of(context).size.height * .72, child: ValueListenableBuilder<int>(
       valueListenable: game.hudTick,
       builder: (_, __, ___) => ListView(padding: const EdgeInsets.all(16), children: [
         Text('HEROES  •  ${game.coins} COIN', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        const Text('Hero gratis + hero premium. Harga dan progres disimpan lokal.'),
+        const Text('Hero starter gratis. Hero premium dibeli menggunakan coin hasil ekonomi game.'),
         const SizedBox(height: 14),
         ...heroCatalog.map((hero) {
           final owned = game.ownedHeroes.contains(hero.id);
@@ -120,7 +106,7 @@ void _showHeroes(BuildContext context, MOBAOfflineGame game) {
                   await game.selectHero(hero);
                 } else {
                   final ok = await game.buyHero(hero);
-                  if (!ok && context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coin belum cukup.')));
+                  if (!ok && context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coin belum cukup. Tonton Rewarded Ad setelah integrasi AdMob aktif.')));
                 }
               },
               child: Text(owned ? (game.selectedHeroId == hero.id ? 'DIPAKAI' : 'PILIH') : '${hero.price} 🟡'),
@@ -128,16 +114,13 @@ void _showHeroes(BuildContext context, MOBAOfflineGame game) {
           ));
         }),
       ]),
-    ))),
-  );
+    )),
+  ));
 }
 
 void _showSkins(BuildContext context, MOBAOfflineGame game) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: const Color(0xFF101614),
-    builder: (_) => SafeArea(child: SizedBox(height: MediaQuery.of(context).size.height * .65, child: ValueListenableBuilder<int>(
+  showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: const Color(0xFF101614), builder: (_) => SafeArea(
+    child: SizedBox(height: MediaQuery.of(context).size.height * .65, child: ValueListenableBuilder<int>(
       valueListenable: game.hudTick,
       builder: (_, __, ___) => ListView(padding: const EdgeInsets.all(16), children: [
         Text('SKIN SHOP  •  ${game.coins} COIN', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
@@ -150,14 +133,14 @@ void _showSkins(BuildContext context, MOBAOfflineGame game) {
           return Card(child: ListTile(
             leading: const CircleAvatar(child: Icon(Icons.auto_awesome)),
             title: Text(skin['name']! as String),
-            subtitle: Text(heroOwned ? 'Skin tersedia' : 'Beli hero ${hero.toUpperCase()} terlebih dahulu'),
+            subtitle: Text(heroOwned ? (game.selectedSkinId == id ? 'Sedang dipakai' : 'Skin tersedia') : 'Beli hero ${hero.toUpperCase()} terlebih dahulu'),
             trailing: ElevatedButton(
               onPressed: heroOwned ? () async {
                 if (owned) {
-                  await game.buySkin({...skin, 'price': 0});
+                  await game.equipSkin(skin);
                 } else {
                   final ok = await game.buySkin(skin);
-                  if (!ok && context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coin belum cukup atau skin tidak tersedia.')));
+                  if (!ok && context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Coin belum cukup.')));
                 }
               } : null,
               child: Text(owned ? 'PAKAI' : '${skin['price']} 🟡'),
@@ -165,14 +148,14 @@ void _showSkins(BuildContext context, MOBAOfflineGame game) {
           ));
         }),
       ]),
-    ))),
-  );
+    )),
+  ));
 }
 
 void _showMultiplayer(BuildContext context) {
   showDialog(context: context, builder: (_) => AlertDialog(
     title: const Text('🌐 MABAR ONLINE'),
-    content: const Text('Fondasi multiplayer sudah dipisahkan dari gameplay.\n\nRoom / matchmaking, sinkronisasi posisi, server-authoritative combat, chat dan reconnect membutuhkan backend realtime. Project ini sengaja tidak mengubah pubspec.yaml atau workflow yang sudah ada.'),
+    content: const Text('Arsitektur gameplay dibuat siap dikembangkan menjadi multiplayer. Untuk mabar sungguhan diperlukan backend realtime: room/matchmaking, sinkronisasi posisi, server-authoritative combat, chat, reconnect dan anti-cheat. Tidak dipalsukan sebagai online sebelum server tersedia.'),
     actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('SIAP'))],
   ));
 }
