@@ -1,23 +1,18 @@
 import 'dart:math' as math;
-
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-
 import '../moba_game.dart';
 import 'world_render_3d.dart';
 
-class MinionComponent extends PositionComponent with HasGameRef<MOBAOfflineGame> {
+class MinionComponent extends PositionComponent with HasGameReference<MOBAOfflineGame> {
   final bool allied;
   final bool ranged;
   double hp;
   double attackTimer = 0;
   double visualTime = 0;
 
-  MinionComponent({
-    required Vector2 position,
-    required this.allied,
-    this.ranged = false,
-  })  : hp = ranged ? 65 : 95,
+  MinionComponent({required Vector2 position, required this.allied, this.ranged = false})
+      : hp = ranged ? 65 : 95,
         super(position: position, size: Vector2.all(52), anchor: Anchor.center);
 
   void takeDamage(double damage) {
@@ -58,32 +53,14 @@ class MinionComponent extends PositionComponent with HasGameRef<MOBAOfflineGame>
     final primary = allied ? const Color(0xff1d65b4) : const Color(0xffa92e3d);
     final secondary = allied ? const Color(0xff79d4ff) : const Color(0xffff7c86);
     WorldRender3D.shadow(canvas, Offset(o.dx, o.dy + 18), 36, 11);
-    WorldRender3D.armoredBody(
-      canvas,
-      center: Offset(o.dx, o.dy + 5),
-      width: ranged ? 38 : 42,
-      height: ranged ? 38 : 42,
-      primary: primary,
-      secondary: secondary,
-      phase: visualTime,
-    );
+    WorldRender3D.armoredBody(canvas, center: Offset(o.dx, o.dy + 5), width: ranged ? 38 : 42, height: ranged ? 38 : 42,
+      primary: primary, secondary: secondary, phase: visualTime);
     canvas.drawCircle(Offset(o.dx, o.dy - 14), 10, Paint()..color = secondary);
-    canvas.drawPath(
-      Path()
-        ..moveTo(o.dx - 9, o.dy - 14)
-        ..lineTo(o.dx, o.dy - 22)
-        ..lineTo(o.dx + 9, o.dy - 14)
-        ..close(),
-      Paint()..color = Colors.black.withOpacity(.65),
-    );
+    canvas.drawPath(Path()..moveTo(o.dx - 9, o.dy - 14)..lineTo(o.dx, o.dy - 22)..lineTo(o.dx + 9, o.dy - 14)..close(), Paint()..color = Colors.black.withValues(alpha: .65));
     canvas.drawCircle(Offset(o.dx - 3, o.dy - 14), 2, Paint()..color = Colors.white);
     canvas.drawCircle(Offset(o.dx + 3, o.dy - 14), 2, Paint()..color = Colors.white);
     if (ranged) {
-      canvas.drawCircle(
-        Offset(o.dx, o.dy + 9),
-        8,
-        Paint()..color = Colors.amber.withOpacity(.85),
-      );
+      canvas.drawCircle(Offset(o.dx, o.dy + 9), 8, Paint()..color = Colors.amber.withValues(alpha: .85));
     }
     WorldRender3D.hpBar(canvas, x: 6, y: 1, width: size.x - 12, hp: hp, maxHp: ranged ? 65 : 95);
   }
