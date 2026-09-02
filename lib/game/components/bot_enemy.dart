@@ -64,7 +64,7 @@ class BotEnemyComponent extends PositionComponent
     canvas.drawCircle(Offset(c.dx, c.dy + 4), 17, Paint()..color = const Color(0xFF8E2430));
     canvas.drawCircle(Offset(c.dx, c.dy - 12), 12, Paint()..color = const Color(0xFFD94A54));
     canvas.drawCircle(Offset(c.dx - 4, c.dy - 15), 3, Paint()..color = Colors.white.withOpacity(.7));
-    canvas.drawRect(Rect.fromLTWH(6, 0, 40, 5), Paint()..color = Colors.black87);
+    canvas.drawRect(const Rect.fromLTWH(6, 0, 40, 5), Paint()..color = Colors.black87);
     canvas.drawRect(
       Rect.fromLTWH(6, 0, 40 * math.max(0, currentHp / maxHp), 5),
       Paint()..color = Colors.limeAccent,
