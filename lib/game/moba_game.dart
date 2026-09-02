@@ -155,11 +155,11 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
       }
     }
 
-    const monsterPositions = [
-      Vector2(-950, -300),
-      Vector2(-950, 300),
-      Vector2(0, -900),
-      Vector2(0, 900),
+    final monsterPositions = <Vector2>[
+      Vector2(-950.0, -300.0),
+      Vector2(-950.0, 300.0),
+      Vector2(0.0, -900.0),
+      Vector2(0.0, 900.0),
     ];
     for (final position in monsterPositions) {
       final monster = JungleMonster(position: position);
@@ -176,12 +176,12 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
   }
 
   void spawnEnemyHeroes() {
-    const positions = [
-      Vector2(1800, -560),
-      Vector2(1800, 0),
-      Vector2(1800, 560),
-      Vector2(1800, -120),
-      Vector2(1800, 120),
+    final positions = <Vector2>[
+      Vector2(1800.0, -560.0),
+      Vector2(1800.0, 0.0),
+      Vector2(1800.0, 560.0),
+      Vector2(1800.0, -120.0),
+      Vector2(1800.0, 120.0),
     ];
     for (final position in positions) {
       final enemy = BotEnemyComponent(position.clone());
@@ -195,12 +195,12 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
     for (final y in lanes) {
       for (int i = 0; i < 3; i++) {
         final alliedMinion = MinionComponent(
-          position: Vector2(-2500 - i * 55.0, y),
+          position: Vector2(-2500.0 - i * 55.0, y),
           allied: true,
           ranged: i == 2,
         );
         final enemyMinion = MinionComponent(
-          position: Vector2(2500 + i * 55.0, y),
+          position: Vector2(2500.0 + i * 55.0, y),
           allied: false,
           ranged: i == 2,
         );
