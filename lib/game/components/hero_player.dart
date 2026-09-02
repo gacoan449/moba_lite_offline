@@ -22,6 +22,7 @@ class HeroPlayerComponent extends PositionComponent
 
   @override
   Future<void> onLoad() async {
+    await super.onLoad();
     add(CircleHitbox(radius: 20));
   }
 
@@ -62,7 +63,7 @@ class HeroPlayerComponent extends PositionComponent
 
     final direction = target == null
         ? facing.clone()
-        : (target!.position - position).normalized();
+        : (target.position - position).normalized();
     facing = direction.clone();
     gameRef.world.add(Projectile(
       direction: direction,
@@ -99,6 +100,8 @@ class HeroPlayerComponent extends PositionComponent
     isDead = false;
     hp = maxHp;
     mana = 100;
+    attackCooldown = 0;
+    skillCooldown = 0;
     position = Vector2.zero();
     facing = Vector2(1, 0);
   }
@@ -109,13 +112,11 @@ class HeroPlayerComponent extends PositionComponent
     final s = size.x / 58;
     final center = Offset(size.x / 2, size.y / 2);
 
-    // Soft ground shadow.
     canvas.drawOval(
       Rect.fromCenter(center: Offset(center.dx, center.dy + 16 * s), width: 42 * s, height: 13 * s),
       Paint()..color = Colors.black.withOpacity(.28),
     );
 
-    // 3D-style legs/body/head using layered polygons.
     final body = Paint()..color = const Color(0xFF1769AA);
     final dark = Paint()..color = const Color(0xFF0D3B66);
     final armor = Paint()..color = const Color(0xFF4FC3F7);
@@ -132,7 +133,6 @@ class HeroPlayerComponent extends PositionComponent
     canvas.drawCircle(Offset(center.dx, center.dy - 11 * s), 11 * s, armor);
     canvas.drawCircle(Offset(center.dx - 3 * s, center.dy - 14 * s), 3 * s, Paint()..color = Colors.white.withOpacity(.8));
 
-    // Sword direction.
     final dir = facing.normalized();
     final p1 = Offset(center.dx + dir.x * 16 * s, center.dy + dir.y * 16 * s);
     final p2 = Offset(center.dx + dir.x * 32 * s, center.dy + dir.y * 32 * s);
