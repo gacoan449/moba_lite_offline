@@ -12,6 +12,8 @@ class HeroPlayerComponent extends PositionComponent
   double hp = 320;
   double mana = 100;
   double speed = 185;
+  double baseDamage = 28;
+  double baseSkillDamage = 75;
   double attackCooldown = 0;
   double skillCooldown = 0;
   bool isDead = false;
@@ -30,11 +32,9 @@ class HeroPlayerComponent extends PositionComponent
   void update(double dt) {
     super.update(dt);
     if (isDead) return;
-
     attackCooldown = math.max(0, attackCooldown - dt);
     skillCooldown = math.max(0, skillCooldown - dt);
     mana = math.min(100, mana + dt * 4);
-
     final input = gameRef.joystick.relativeDelta;
     if (input.length2 > 0.01) {
       final dir = input.normalized();
@@ -43,14 +43,12 @@ class HeroPlayerComponent extends PositionComponent
       position.x = position.x.clamp(-2800, 2800).toDouble();
       position.y = position.y.clamp(-2800, 2800).toDouble();
     }
-
     if (hp < maxHp) hp = math.min(maxHp, hp + dt * 0.8);
   }
 
   void basicAttack(bool premium) {
     if (isDead || attackCooldown > 0) return;
     attackCooldown = premium ? 0.22 : 0.42;
-
     BotEnemyComponent? target;
     double best = double.infinity;
     for (final enemy in gameRef.enemies) {
@@ -60,14 +58,11 @@ class HeroPlayerComponent extends PositionComponent
         target = enemy;
       }
     }
-
-    final direction = target == null
-        ? facing.clone()
-        : (target.position - position).normalized();
+    final direction = target == null ? facing.clone() : (target.position - position).normalized();
     facing = direction.clone();
     gameRef.world.add(Projectile(
       direction: direction,
-      damage: premium ? 48 : 28,
+      damage: (premium ? baseDamage * 1.7 : baseDamage),
       position: position + direction * 28,
       isPremium: premium,
     ));
@@ -77,13 +72,12 @@ class HeroPlayerComponent extends PositionComponent
     if (isDead || skillCooldown > 0 || mana < 30) return;
     skillCooldown = 5.0;
     mana -= 30;
-
     for (final enemy in List<BotEnemyComponent>.from(gameRef.enemies)) {
       if (!enemy.isDead && enemy.position.distanceTo(position) < 210) {
-        enemy.takeDamage(75);
+        enemy.takeDamage(baseSkillDamage);
       }
     }
-    gameRef.flashMessage('SKILL: SHOCKWAVE!');
+    gameRef.flashMessage('SKILL: ${gameRef.selectedHero.name.toUpperCase()} • SHOCKWAVE!');
   }
 
   void takeDamage(double damage) {
@@ -111,31 +105,20 @@ class HeroPlayerComponent extends PositionComponent
     super.render(canvas);
     final s = size.x / 58;
     final center = Offset(size.x / 2, size.y / 2);
-
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset(center.dx, center.dy + 16 * s), width: 42 * s, height: 13 * s),
-      Paint()..color = Colors.black.withOpacity(.28),
-    );
-
     final body = Paint()..color = const Color(0xFF1769AA);
     final dark = Paint()..color = const Color(0xFF0D3B66);
-    final armor = Paint()..color = const Color(0xFF4FC3F7);
+    final armor = Paint()..color = gameRef.selectedHeroId == 'lyra' ? const Color(0xFF9C6BFF) : const Color(0xFF4FC3F7);
+    canvas.drawOval(Rect.fromCenter(center: Offset(center.dx, center.dy + 16 * s), width: 42 * s, height: 13 * s), Paint()..color = Colors.black.withOpacity(.28));
     canvas.drawOval(Rect.fromCenter(center: Offset(center.dx, center.dy + 7 * s), width: 30 * s, height: 25 * s), dark);
-    canvas.drawPath(
-      Path()
-        ..moveTo(center.dx - 15 * s, center.dy + 1 * s)
-        ..lineTo(center.dx + 15 * s, center.dy + 1 * s)
-        ..lineTo(center.dx + 11 * s, center.dy + 17 * s)
-        ..lineTo(center.dx - 11 * s, center.dy + 17 * s)
-        ..close(),
-      body,
-    );
+    canvas.drawPath(Path()
+      ..moveTo(center.dx - 15 * s, center.dy + 1 * s)
+      ..lineTo(center.dx + 15 * s, center.dy + 1 * s)
+      ..lineTo(center.dx + 11 * s, center.dy + 17 * s)
+      ..lineTo(center.dx - 11 * s, center.dy + 17 * s)
+      ..close(), body);
     canvas.drawCircle(Offset(center.dx, center.dy - 11 * s), 11 * s, armor);
     canvas.drawCircle(Offset(center.dx - 3 * s, center.dy - 14 * s), 3 * s, Paint()..color = Colors.white.withOpacity(.8));
-
     final dir = facing.normalized();
-    final p1 = Offset(center.dx + dir.x * 16 * s, center.dy + dir.y * 16 * s);
-    final p2 = Offset(center.dx + dir.x * 32 * s, center.dy + dir.y * 32 * s);
-    canvas.drawLine(p1, p2, Paint()..color = Colors.white..strokeWidth = 4 * s);
+    canvas.drawLine(Offset(center.dx + dir.x * 16 * s, center.dy + dir.y * 16 * s), Offset(center.dx + dir.x * 32 * s, center.dy + dir.y * 32 * s), Paint()..color = Colors.white..strokeWidth = 4 * s);
   }
 }
