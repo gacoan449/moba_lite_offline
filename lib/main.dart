@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'game/moba_3d_world.dart';
+import 'game/moba_3d_phase2.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,20 +10,16 @@ Future<void> main() async {
     DeviceOrientation.landscapeRight,
   ]);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
   runApp(const ArenaLegendsApp());
 }
 
 class ArenaLegendsApp extends StatelessWidget {
   const ArenaLegendsApp({super.key});
-
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Arena Legends 3D',
-      theme: ThemeData.dark(useMaterial3: true),
-      home: const Moba3DWorld(),
-    );
-  }
+  Widget build(BuildContext context) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Arena Legends 3D',
+        theme: ThemeData.dark(useMaterial3: true),
+        home: const Moba3DPhase2(),
+      );
 }
