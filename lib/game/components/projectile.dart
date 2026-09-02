@@ -23,17 +23,14 @@ class Projectile extends CircleComponent with CollisionCallbacks {
 
   @override
   Future<void> onLoad() async {
-    // Tambahkan Hitbox agar bisa mendeteksi tabrakan
+    await super.onLoad();
     add(CircleHitbox());
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    // Gerakkan peluru sesuai arah (direction)
     position += direction.normalized() * speed * dt;
-
-    // Hancurkan peluru jika keluar terlalu jauh dari layar agar memori tidak bocor
     if (position.x.abs() > 2000 || position.y.abs() > 2000) {
       removeFromParent();
     }
@@ -42,11 +39,9 @@ class Projectile extends CircleComponent with CollisionCallbacks {
   @override
   void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollisionStart(intersectionPoints, other);
-    // Jika peluru mengenai musuh
     if (other is BotEnemyComponent) {
       other.takeDamage(damage);
-      // Peluru hancur setelah mengenai target (Kecuali laser tembus pandang)
-      if (!isPremium) removeFromParent(); 
+      if (!isPremium) removeFromParent();
     }
   }
 }
