@@ -135,7 +135,6 @@ class HeroPlayerComponent extends PositionComponent
         ? const Color(0xff9c6bff)
         : const Color(0xff39a9ff);
 
-    // Contact shadow + floating sci-fi energy ring create depth.
     WorldRender3D.shadow(canvas, Offset(origin.dx, origin.dy + 31), 58, 17);
     canvas.drawOval(
       Rect.fromCenter(center: Offset(origin.dx, origin.dy + 24), width: 48, height: 15),
@@ -155,7 +154,6 @@ class HeroPlayerComponent extends PositionComponent
       phase: _visualTime,
     );
 
-    // Head with helmet visor, shoulder armor and glowing core.
     canvas.drawCircle(Offset(origin.dx, origin.dy - 21), 17, Paint()..color = armor);
     canvas.drawPath(
       Path()
@@ -177,7 +175,6 @@ class HeroPlayerComponent extends PositionComponent
       Paint()..color = Colors.cyanAccent.withOpacity(.8),
     );
 
-    // Shoulder plates give a readable humanoid silhouette.
     for (final dx in [-25.0, 25.0]) {
       canvas.drawOval(
         Rect.fromCenter(center: Offset(origin.dx + dx, origin.dy + 3), width: 18, height: 12),
@@ -186,18 +183,14 @@ class HeroPlayerComponent extends PositionComponent
     }
 
     final direction = facing.normalized();
-    final weaponStart = Offset(
-      origin.dx + direction.x * 17,
-      origin.dy + direction.y * 17,
-    );
-    final weaponEnd = Offset(
-      origin.dx + direction.x * 39,
-      origin.dy + direction.y * 39,
-    );
+    final weaponStart = Offset(origin.dx + direction.x * 17, origin.dy + direction.y * 17);
+    final weaponEnd = Offset(origin.dx + direction.x * 39, origin.dy + direction.y * 39);
     canvas.drawLine(
       weaponStart,
       weaponEnd,
-      Paint()..color = Colors.white..strokeWidth = 6,
+      Paint()
+        ..color = Colors.white
+        ..strokeWidth = 6,
     );
     canvas.drawCircle(weaponEnd, 4 + pulse.abs(), Paint()..color = Colors.cyanAccent.withOpacity(.7));
 
