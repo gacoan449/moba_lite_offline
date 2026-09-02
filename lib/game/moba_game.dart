@@ -49,10 +49,8 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
     coins = _prefs?.getInt('moba_coins') ?? 0;
     selectedHeroId = _prefs?.getString('selected_hero') ?? 'astra';
     selectedSkinId = _prefs?.getString('selected_skin') ?? 'astra_default';
-    final savedHeroes = _prefs?.getStringList('owned_heroes') ?? ['astra'];
-    ownedHeroes.addAll(savedHeroes);
-    final savedSkins = _prefs?.getStringList('owned_skins') ?? ['astra_default'];
-    ownedSkins.addAll(savedSkins);
+    ownedHeroes.addAll(_prefs?.getStringList('owned_heroes') ?? ['astra']);
+    ownedSkins.addAll(_prefs?.getStringList('owned_skins') ?? ['astra_default']);
 
     player = HeroPlayerComponent();
     world.add(player);
@@ -118,12 +116,18 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
     if (!ownedHeroes.contains(hero) || ownedSkins.contains(id) || coins < price) return false;
     coins -= price;
     ownedSkins.add(id);
-    selectedSkinId = id;
+    await equipSkin(skin);
     await _saveWallet();
+    return true;
+  }
+
+  Future<void> equipSkin(Map<String, Object> skin) async {
+    final id = skin['id']! as String;
+    if (!ownedSkins.contains(id)) return;
+    selectedSkinId = id;
     await _prefs?.setString('selected_skin', id);
     flashMessage('Skin ${skin['name']} dipakai!');
     hudTick.value++;
-    return true;
   }
 
   /// Hook untuk callback Google AdMob Rewarded Ad.
@@ -195,12 +199,8 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
   }
 
   void resetGame() {
-    for (final e in List<BotEnemyComponent>.from(enemies)) {
-      e.removeFromParent();
-    }
-    for (final m in List<MinionComponent>.from(minions)) {
-      m.removeFromParent();
-    }
+    for (final e in List<BotEnemyComponent>.from(enemies)) e.removeFromParent();
+    for (final m in List<MinionComponent>.from(minions)) m.removeFromParent();
     enemies.clear();
     minions.clear();
     currentLevel = 1;
@@ -226,12 +226,8 @@ class MOBAOfflineGame extends FlameGame with HasCollisionDetection {
   void render(Canvas canvas) {
     canvas.drawRect(const Rect.fromLTWH(-4000, -4000, 8000, 8000), Paint()..color = const Color(0xFF263E2C));
     final grid = Paint()..color = const Color(0xFF355B3B)..strokeWidth = 2;
-    for (int x = -4000; x <= 4000; x += 160) {
-      canvas.drawLine(Offset(x.toDouble(), -4000), Offset(x.toDouble(), 4000), grid);
-    }
-    for (int y = -4000; y <= 4000; y += 160) {
-      canvas.drawLine(Offset(-4000, y.toDouble()), Offset(4000, y.toDouble()), grid);
-    }
+    for (int x = -4000; x <= 4000; x += 160) canvas.drawLine(Offset(x.toDouble(), -4000), Offset(x.toDouble(), 4000), grid);
+    for (int y = -4000; y <= 4000; y += 160) canvas.drawLine(Offset(-4000, y.toDouble()), Offset(4000, y.toDouble()), grid);
     canvas.drawRect(const Rect.fromLTWH(-120, -4000, 240, 8000), Paint()..color = const Color(0xFF285A7A).withOpacity(.72));
     super.render(canvas);
   }
