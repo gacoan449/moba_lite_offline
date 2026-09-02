@@ -19,6 +19,9 @@ jobs:
       # the Android platform project. Generate a clean Android host project
       # before resolving packages and building the APK.
       - run: flutter create --platforms=android --project-name=moba_lite_offline .
+      # flutter create generates a default widget_test.dart that expects MyApp.
+      # This game uses its own GameWidget entry point, so remove that generated test.
+      - run: rm -rf test
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter build apk --release
