@@ -208,7 +208,7 @@ class _Moba3DPhase5State extends State<Moba3DPhase5> {
   );
 
   Widget _joystick() => GestureDetector(
-    onPanStart: _updateJoy,
+    onPanStart: (_) {},
     onPanUpdate: _updateJoy,
     onPanEnd: (_) => setState(() => _joy = Offset.zero),
     child: Container(
