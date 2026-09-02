@@ -61,10 +61,13 @@ class JungleMonster extends PositionComponent with HasGameRef<MOBAOfflineGame> {
     canvas.drawCircle(Offset(r, r - size.y * .18), size.x * .22, Paint()..color = secondary);
     canvas.drawCircle(Offset(r - r * .25, r - r * .19), r * .11, Paint()..color = Colors.redAccent);
     canvas.drawCircle(Offset(r + r * .25, r - r * .19), r * .11, Paint()..color = Colors.redAccent);
+    final mouthPaint = Paint()
+      ..color = Colors.black87
+      ..strokeWidth = math.max(2, r * .06);
     canvas.drawLine(
       Offset(r - r * .16, r + r * .02),
       Offset(r + r * .16, r + r * .02),
-      Paint()..color = Colors.black87..strokeWidth = math.max(2, r * .06),
+      mouthPaint,
     );
     if (boss) {
       WorldRender3D.crystal(
