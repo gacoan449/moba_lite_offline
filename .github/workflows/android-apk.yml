@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feature/moba-25d-lite ]
   workflow_dispatch:
 
 jobs:
@@ -12,27 +12,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
-          # three_js 0.2.x requires Dart >= 3.7.0. Flutter 3.47.2
-          # ships with a compatible Dart SDK, while keeping the stable
-          # Android build toolchain used by this project.
           flutter-version: '3.47.2'
           channel: stable
           cache: true
-
-      # Generate only the Android host project. This preserves the game's
-      # Dart/lib source while ensuring Android Gradle files match the SDK.
       - run: flutter create --platforms=android --project-name=moba_lite_offline .
       - run: rm -rf test
       - run: flutter pub get
       - run: flutter analyze
-
-      # flutter_angle (used by three_js) requires CMake 3.31.4.
-      # Install that exact SDK component before Gradle configures flutter_angle.
-      - name: Install required Android CMake
-        run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "cmake;3.31.4"
-
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
