@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flame/components.dart';
-import 'package:flutter/material.dart';
 
 import '../moba_game.dart';
 import 'bot_enemy.dart';
@@ -11,11 +10,13 @@ import 'turret.dart';
 
 class HeroPlayerComponent extends PositionComponent
     with HasGameReference<MOBAOfflineGame> {
-  HeroPlayerComponent({required this.name, required this.baseDamage});
+  HeroPlayerComponent({this.name = 'Astra', this.baseDamage = 34});
 
-  final String name;
-  final double baseDamage;
-  final double baseSkillDamage = 55;
+  String name;
+  double baseDamage;
+  double baseSkillDamage = 55;
+  double maxHp = 1000;
+  double speed = 210;
   Vector2 facing = Vector2(1, 0);
   double hp = 1000;
   double mana = 500;
@@ -51,7 +52,7 @@ class HeroPlayerComponent extends PositionComponent
     }
 
     for (final minion in game.minions) {
-      if (minion.isDead) {
+      if (minion.dead) {
         continue;
       }
       final d = minion.position.distanceTo(position);
@@ -62,7 +63,7 @@ class HeroPlayerComponent extends PositionComponent
     }
 
     for (final monster in game.monsters) {
-      if (monster.isDead) {
+      if (monster.dead) {
         continue;
       }
       final d = monster.position.distanceTo(position);
@@ -97,6 +98,11 @@ class HeroPlayerComponent extends PositionComponent
     }
   }
 
+  void basicAttack([bool premiumAttack = false]) {
+    premium = premiumAttack;
+    attack();
+  }
+
   void useSkill() {
     if (isDead || skillCooldown > 0 || mana < 30) {
       return;
@@ -112,7 +118,7 @@ class HeroPlayerComponent extends PositionComponent
     }
 
     for (final minion in List<MinionComponent>.from(game.minions)) {
-      if (!minion.isDead && minion.position.distanceTo(position) < 240) {
+      if (!minion.dead && minion.position.distanceTo(position) < 240) {
         minion.takeDamage(baseSkillDamage);
       }
     }
@@ -130,5 +136,14 @@ class HeroPlayerComponent extends PositionComponent
       isDead = true;
       game.flashMessage('$name has been defeated');
     }
+  }
+
+  void reset() {
+    hp = maxHp;
+    mana = 500;
+    skillCooldown = 0;
+    isDead = false;
+    facing = Vector2(1, 0);
+    premium = false;
   }
 }
