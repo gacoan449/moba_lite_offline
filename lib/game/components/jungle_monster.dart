@@ -21,18 +21,18 @@ class JungleMonster extends PositionComponent with HasGameReference<MOBAOfflineG
   void takeDamage(double damage) {
     if (dead) return;
     hp = math.max(0, hp - damage).toDouble();
-    if (dead) gameRef.onMonsterKilled(this);
+    if (dead) game.onMonsterKilled(this);
   }
 
   @override
   void update(double dt) {
     super.update(dt);
-    if (dead || gameRef.player.isDead) return;
+    if (dead || game.player.isDead) return;
     visualTime += dt;
     timer = math.max(0, timer - dt).toDouble();
-    final distance = gameRef.player.position.distanceTo(position);
+    final distance = game.player.position.distanceTo(position);
     if (distance < 280 && timer <= 0) {
-      gameRef.player.takeDamage(boss ? 28 : 12);
+      game.player.takeDamage(boss ? 28 : 12);
       timer = boss ? 0.75 : 1.15;
     }
   }
