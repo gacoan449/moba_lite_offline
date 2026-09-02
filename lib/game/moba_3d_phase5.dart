@@ -172,7 +172,7 @@ class _Moba3DPhase5State extends State<Moba3DPhase5> {
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(9),
-          child: Text('LV $_level   K $_kills   $$_gold',
+          child: Text('LV $_level   K $_kills   \$_gold',
               style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
       ),
