@@ -20,8 +20,8 @@ class MinionComponent extends PositionComponent with HasGameReference<MOBAOfflin
     if (hp <= 0) {
       hp = 0;
       removeFromParent();
-      gameRef.gold += 12;
-      gameRef.xp += 8;
+      game.gold += 12;
+      game.xp += 8;
     }
   }
 
@@ -31,8 +31,8 @@ class MinionComponent extends PositionComponent with HasGameReference<MOBAOfflin
     if (hp <= 0) return;
     visualTime += dt;
     attackTimer = math.max(0, attackTimer - dt).toDouble();
-    final enemyMinions = gameRef.minions.where((minion) => minion.allied != allied && !minion.isRemoved && minion.position.distanceTo(position) < 80).toList();
-    final enemyTurrets = gameRef.turrets.where((turret) => turret.allied != allied && !turret.destroyed && turret.position.distanceTo(position) < 95).toList();
+    final enemyMinions = game.minions.where((minion) => minion.allied != allied && !minion.isRemoved && minion.position.distanceTo(position) < 80).toList();
+    final enemyTurrets = game.turrets.where((turret) => turret.allied != allied && !turret.destroyed && turret.position.distanceTo(position) < 95).toList();
     if (attackTimer <= 0) {
       if (enemyMinions.isNotEmpty) {
         enemyMinions.first.takeDamage(ranged ? 18 : 25);
