@@ -30,6 +30,25 @@ class HeroPlayerComponent extends PositionComponent
     if (skillCooldown > 0) {
       skillCooldown = math.max(0, skillCooldown - dt);
     }
+    for (final id in abilityCooldowns.keys.toList()) {
+      abilityCooldowns[id] = math.max(0, abilityCooldowns[id]! - dt);
+    }
+  }
+
+  // Modular ability state. Static numbers live in AbilityData; runtime state stays here.
+  final Map<String, double> abilityCooldowns = <String, double>{};
+  int abilityLevel = 1;
+
+  bool castAbility(dynamic ability, Vector2 aim) {
+    if (isDead) return false;
+    final data = ability.data;
+    final level = data.level(abilityLevel);
+    if ((abilityCooldowns[data.id] ?? 0) > 0 || mana < level.cost) return false;
+    final context = ability.context(this, aim, attack: baseDamage, magicPower: 0, level: abilityLevel);
+    if (!ability.executor.cast(context, data)) return false;
+    mana -= level.cost;
+    abilityCooldowns[data.id] = level.cooldown;
+    return true;
   }
 
   void attack() {
