@@ -48,6 +48,13 @@ class AbilityContext {
   final int level;
 }
 
+class AbilityBinding {
+  const AbilityBinding(this.data, this.executor);
+  final AbilityData data;
+  final AbilityExecutor executor;
+  AbilityContext context(PositionComponent caster, Vector2 aim, {required double attack, required double magicPower, required int level}) => AbilityContext(caster: caster, origin: caster.position.clone(), aim: aim, attack: attack, magicPower: magicPower, level: level);
+}
+
 abstract class AbilityExecutor {
   bool cast(AbilityContext context, AbilityData data);
   double damage(AbilityContext c, AbilityLevelData l) =>
