@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flame/components.dart';
 
 import '../moba_game.dart';
+import '../systems/ability_system.dart';
 import 'bot_enemy.dart';
 import 'jungle_monster.dart';
 import 'minion.dart';
@@ -39,7 +40,7 @@ class HeroPlayerComponent extends PositionComponent
   final Map<String, double> abilityCooldowns = <String, double>{};
   int abilityLevel = 1;
 
-  bool castAbility(dynamic ability, Vector2 aim) {
+  bool castAbility(AbilityBinding ability, Vector2 aim) {
     if (isDead) return false;
     final data = ability.data;
     final level = data.level(abilityLevel);
