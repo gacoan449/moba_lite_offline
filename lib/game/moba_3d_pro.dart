@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, curly_braces_in_flow_control_structures, prefer_interpolation_to_compose_strings
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:three_js/three_js.dart' as three;
@@ -74,15 +75,15 @@ class _Moba3DProState extends State<Moba3DPro> {
     player=ProUnit('P',0,three.Vector3(-70,0,0),CombatStats(maxHp:1600,attack:135,armor:28,magicResist:24,moveSpeed:14,range:8,maxMana:700));
     player.mesh=_hero(0x3e8cff);view.scene.add(player.mesh!);
     final zs=[-34.0,34.0,-10.0,10.0,0.0];final cs=[0xf05b68,0xd96c4e,0xc95fe0,0xe0b14d,0x72c8e8];
-    for(int i=0;i<5;i++){final e=ProUnit('E'+i,1,three.Vector3(70,0,zs[i]),CombatStats(maxHp:1250,attack:88,armor:22,magicResist:18,moveSpeed:6.5,range:8));e.lane=zs[i];e.mesh=_hero(cs[i]);enemies.add(e);view.scene.add(e.mesh!);}
+    for(int i=0;i<5;i++){final e=ProUnit('E$i',1,three.Vector3(70,0,zs[i]),CombatStats(maxHp:1250,attack:88,armor:22,magicResist:18,moveSpeed:6.5,range:8));e.lane=zs[i];e.mesh=_hero(cs[i]);enemies.add(e);view.scene.add(e.mesh!);}
   }
   three.Group _hero(int c){final g=three.Group();g.add(mesh(three.CapsuleGeometry(radius:1.6,length:3,capSegments:8,radialSegments:12),c,metal:.2)..position.y=3);g.add(mesh(three.BoxGeometry(4,.8,2),0x24303c,metal:.55)..position.y=4);g.add(mesh(three.SphereGeometry(1.15,16,12),0xe9b994)..position.y=5.8);g.add(mesh(three.OctahedronGeometry(.65,1),0x79e9ff,metal:.3)..position.y=7.2);return g;}
   void _buildJungle(){
     for(final p in [three.Vector3(-25,0,-17),three.Vector3(25,0,17),three.Vector3(-25,0,17),three.Vector3(25,0,-17)]){
       final m=ProUnit('C'+jungle.length.toString(),2,p,CombatStats(maxHp:700,attack:25,armor:12,magicResist:10,moveSpeed:0,range:5));m.mesh=_monster(false);jungle.add(m);view.scene.add(m.mesh!);
     }
-    final t=ProUnit('TURTLE',2,three.Vector3(0,0,0),CombatStats(maxHp:4500,attack:65,armor:30,magicResist:25,moveSpeed:0,range:8));t.mesh=_monster(true);t.targetable=false;t.mesh.visible=false;jungle.add(t);view.scene.add(t.mesh!);
-    final d=ProUnit('DRAKE',2,three.Vector3(0,0,46),CombatStats(maxHp:6500,attack:90,armor:35,magicResist:30,moveSpeed:0,range:10));d.mesh=_monster(true);d.targetable=false;d.mesh.visible=false;jungle.add(d);view.scene.add(d.mesh!);
+    final t=ProUnit('TURTLE',2,three.Vector3(0,0,0),CombatStats(maxHp:4500,attack:65,armor:30,magicResist:25,moveSpeed:0,range:8));t.mesh=_monster(true);t.targetable=false;t.mesh!.visible=false;jungle.add(t);view.scene.add(t.mesh!);
+    final d=ProUnit('DRAKE',2,three.Vector3(0,0,46),CombatStats(maxHp:6500,attack:90,armor:35,magicResist:30,moveSpeed:0,range:10));d.mesh=_monster(true);d.targetable=false;d.mesh!.visible=false;jungle.add(d);view.scene.add(d.mesh!);
   }
   three.Group _monster(bool boss){final g=three.Group();final c=boss?0x8f45d9:0xc47b31;g.add(mesh(three.SphereGeometry(boss?4.8:2.8,18,12),c,metal:.15)..position.y=boss?4:2.5);g.add(mesh(three.OctahedronGeometry(boss?1.5:.7,1),boss?0x56eaff:0xffbd49)..position.y=boss?8:5);return g;}
   three.Group _minion(bool ally,bool ranged){final g=three.Group();final c=ally?0x3f8dff:0xe95762;g.add(mesh(three.CylinderGeometry(1.1,1.4,2.5,8),c)..position.y=1.5);g.add(mesh(three.SphereGeometry(.8,12,8),0xe8bd9e)..position.y=3.2);if(ranged)g.add(mesh(three.TorusGeometry(1.2,.18,6,18),0xffd45a)..rotation.x=math.pi/2..position.y=1);return g;}
