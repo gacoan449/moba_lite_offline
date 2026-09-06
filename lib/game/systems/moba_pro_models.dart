@@ -1,3 +1,4 @@
+// ignore_for_file: annotate_overrides
 import 'dart:math' as math;
 import 'package:three_js/three_js.dart' as three;
 
@@ -82,8 +83,12 @@ abstract class MobaTransport {
 }
 class LocalTransport implements MobaTransport {
  bool _connected=false;
- bool get connected=>_connected;
- Future<void> connect()async{_connected=true;}
- Future<void> disconnect()async{_connected=false;}
- Future<void> sendCommand(String command,Map<String,dynamic> payload)async{}
+ @override
+  bool get connected=>_connected;
+ @override
+  Future<void> connect()async{_connected=true;}
+ @override
+  Future<void> disconnect()async{_connected=false;}
+ @override
+  Future<void> sendCommand(String command,Map<String,dynamic> payload)async{}
 }
