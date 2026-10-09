@@ -96,7 +96,7 @@ class _Moba3DProState extends State<Moba3DPro> {
   three.Group _hero(int c,{bool allied=false,String rigId=''}){
     final g=three.Group();
     // Lightweight fake contact shadow keeps the hero grounded on mobile GPUs.
-    g.add(mesh(three.CircleGeometry(2.35,20),0x17251d)..rotation.x=-math.pi/2..position.y=.07..scale.setValues(1,.58,1));
+    g.add(mesh(three.CylinderGeometry(2.35,2.35,.05,20),0x17251d)..position.y=.07..scale.setValues(1,.58,1));
     g.add(mesh(three.CapsuleGeometry(radius:1.05,length:2.4,capSegments:6,radialSegments:10),0x263247,metal:.32)..position.y=1.8);
     g.add(mesh(three.CapsuleGeometry(radius:1.35,length:2.1,capSegments:8,radialSegments:12),c,metal:.38)..position.setValues(0,3.55,0));
     g.add(mesh(three.BoxGeometry(2.9,.65,1.9),0xd8e3ed,metal:.62)..position.setValues(0,4.05,0));
@@ -337,7 +337,7 @@ class _Moba3DProState extends State<Moba3DPro> {
   }
   Widget _hud()=>Row(children:[_pill('TIME '+time.toInt().toString()),const SizedBox(width:6),_pill('K/D '+kills.toString()+'/'+deaths.toString()),const SizedBox(width:6),_pill('LV '+level.toString()+' GOLD '+gold.toInt().toString()),const SizedBox(width:6),_pill('HP '+hp.toInt().toString()),const SizedBox(width:6),_pill('MP '+mana.toInt().toString()),const SizedBox(width:6),GestureDetector(onTap:_buyItem,child:_pill('SHOP '+inventory.items.length.toString()+'/6')),const Spacer(),_pill('WAVE '+wave.toString())]);
   void _earnGold(int amount){gold+=amount.toDouble();player.gold+=amount;}
-  void _buyItem(){if(inventory.buy(shopItems[inventory.items.length%shopItems.length],player)){gold=player.gold;setState((){});}}
+  void _buyItem(){if(inventory.buy(shopItems[inventory.items.length%shopItems.length],player)){gold=player.gold.toDouble();setState((){});}}
   Widget _pill(String s)=>Material(color:Colors.black.withValues(alpha:.72),borderRadius:BorderRadius.circular(12),child:Padding(padding:const EdgeInsets.symmetric(horizontal:12,vertical:8),child:Text(s,style:const TextStyle(fontWeight:FontWeight.w800))));
   Widget _joystick()=>GestureDetector(onPanUpdate:(d){joyX=(d.localPosition.dx-70)/60;joyZ=(d.localPosition.dy-70)/60;final n=math.sqrt(joyX*joyX+joyZ*joyZ);if(n>1){joyX/=n;joyZ/=n;}},onPanEnd:(_){joyX=0;joyZ=0;},child:Container(width:140,height:140,decoration:BoxDecoration(shape:BoxShape.circle,color:Colors.black54,border:Border.all(color:Colors.white24,width:2)),child:Center(child:Transform.translate(offset:Offset(joyX*27,joyZ*27),child:Container(width:58,height:58,decoration:BoxDecoration(shape:BoxShape.circle,color:const Color(0xff8beaff).withValues(alpha:.28),border:Border.all(color:Colors.white54,width:1.5),boxShadow:const [BoxShadow(color:Color(0x5539cfff),blurRadius:12)]),child:const Icon(Icons.gamepad,color:Colors.white70))))));
   Widget _miniMap()=>Container(width:150,height:92,padding:const EdgeInsets.all(7),decoration:BoxDecoration(color:Colors.black.withValues(alpha:.78),borderRadius:BorderRadius.circular(12),border:Border.all(color:Colors.white30)),child:CustomPaint(painter:_MiniMapPainter(playerX:player.position.x,playerZ:player.position.z)));
