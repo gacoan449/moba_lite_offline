@@ -20,6 +20,7 @@ class _Moba3DProState extends State<Moba3DPro> {
   final towers=<ProTower>[];
   late ProUnit player; late ProCore blue,red;
   three.Mesh? aimRing;
+  double aimTimer=0;
 
   final skills=<SkillData>[
     SkillData(id:'slash',name:'SLASH',levels:[
@@ -53,12 +54,22 @@ class _Moba3DProState extends State<Moba3DPro> {
     view.scene.add(mesh(three.BoxGeometry(190,2,130),0x3c884b)..position.y=-1);
     for(final z in [-34.0,0.0,34.0])view.scene.add(mesh(three.BoxGeometry(176,.7,13),0x6c685f)..position.setValues(0,.15,z));
     view.scene.add(mesh(three.BoxGeometry(13,.4,130),0x238fb8)..position.y=.25);
+    // Raised stone bridges and lane markings make the battlefield easier to read.
+    for(final x in [-42.0,0.0,42.0]){
+      view.scene.add(mesh(three.BoxGeometry(18,.8,17),0xaaa28d,metal:.08)..position.setValues(x,.45,0));
+      for(final z in [-34.0,0.0,34.0]){view.scene.add(mesh(three.BoxGeometry(4,.12,1.1),0xc9c2ac)..position.setValues(x,.62,z));}
+    }
     final r=math.Random(42);
-    for(int i=0;i<120;i++){final x=r.nextDouble()*160-80,z=r.nextDouble()*112-56;if(x.abs()<10||(z.abs()<43&&x.abs()<62))continue;_tree(x,z,.65+r.nextDouble()*.9);}
+    for(int i=0;i<150;i++){final x=r.nextDouble()*160-80,z=r.nextDouble()*112-56;if(x.abs()<12||(z.abs()<43&&x.abs()<62))continue;_tree(x,z,.65+r.nextDouble()*.9);}
+    for(final p in [three.Vector3(-15,0,-24),three.Vector3(15,0,24),three.Vector3(-15,0,24),three.Vector3(15,0,-24)]){
+      view.scene.add(mesh(three.OctahedronGeometry(2.1,1),0x36d9e8,metal:.35)..position.setValues(p.x,2,p.z));
+      view.scene.add(mesh(three.TorusGeometry(2.8,.12,8,28),0x50d9ed,metal:.25)..rotation.x=math.pi/2..position.setValues(p.x,.25,p.z));
+    }
   }
   void _tree(double x,double z,double s){
     view.scene.add(mesh(three.CylinderGeometry(.7,1.2,5,8),0x654329)..position.setValues(x,2.5*s,z)..scale.setValues(s,s,s));
     view.scene.add(mesh(three.IcosahedronGeometry(3.2,1),0x277a42)..position.setValues(x,6*s,z)..scale.setValues(s,s,s));
+    view.scene.add(mesh(three.IcosahedronGeometry(2.1,1),0x398c4c)..position.setValues(x-1.1*s,7.1*s,z+.35*s)..scale.setValues(s*.8,s*.85,s*.8));
   }
   void _buildBases(){
     _base(-84,0x3d83ff);_base(84,0xe34e5b);blue=ProCore(-84,0,0x4e91ff);red=ProCore(84,0,0xff5868);
@@ -67,17 +78,40 @@ class _Moba3DProState extends State<Moba3DPro> {
   }
   void _base(double x,int c){
     view.scene.add(mesh(three.CylinderGeometry(11,14,2,10),0x303840)..position.setValues(x,1,0));
-    view.scene.add(mesh(three.TorusGeometry(9,.7,12,48),c,metal:.25)..rotation.x=math.pi/2..position.setValues(x,2.2,0));
+    view.scene.add(mesh(three.CylinderGeometry(8.2,9.5,.8,12),c,metal:.2)..position.setValues(x,2.05,0));
+    view.scene.add(mesh(three.TorusGeometry(9,.7,12,48),c,metal:.25)..rotation.x=math.pi/2..position.setValues(x,2.5,0));
+    view.scene.add(mesh(three.TorusGeometry(5,.16,8,36),0x8fefff,metal:.3)..rotation.x=math.pi/2..position.setValues(x,2.55,0));
   }
   void _tower(double x,double z,bool ally){final t=ProTower(x,z,ally);t.mesh=_towerMesh(ally?0x4f91ff:0xf05462);towers.add(t);view.scene.add(t.mesh!);}
-  three.Group _towerMesh(int c){final g=three.Group();g.add(mesh(three.CylinderGeometry(2.8,3.7,4,8),0x343b43,metal:.35)..position.y=2);g.add(mesh(three.OctahedronGeometry(2.2,1),c,metal:.3)..position.y=5.5);return g;}
+  three.Group _towerMesh(int c){final g=three.Group();g.add(mesh(three.CylinderGeometry(2.8,3.7,4,8),0x343b43,metal:.35)..position.y=2);g.add(mesh(three.CylinderGeometry(2.1,2.5,1,8),c,metal:.3)..position.y=4.3);g.add(mesh(three.OctahedronGeometry(2.2,1),c,metal:.3)..position.y=5.5);g.add(mesh(three.TorusGeometry(2.4,.18,8,24),0xffe8a3,metal:.25)..rotation.x=math.pi/2..position.y=4.8);g.add(mesh(three.ConeGeometry(1.15,2.4,8),0xeafaff,metal:.4)..position.y=7.6);return g;}
   void _buildHeroes(){
     player=ProUnit('P',0,three.Vector3(-70,0,0),CombatStats(maxHp:1600,attack:135,armor:28,magicResist:24,moveSpeed:14,range:8,maxMana:700));
-    player.mesh=_hero(0x3e8cff);view.scene.add(player.mesh!);
+    player.mesh=_hero(0x3e8cff,allied:true);view.scene.add(player.mesh!);
     final zs=[-34.0,34.0,-10.0,10.0,0.0];final cs=[0xf05b68,0xd96c4e,0xc95fe0,0xe0b14d,0x72c8e8];
     for(int i=0;i<5;i++){final e=ProUnit('E$i',1,three.Vector3(70,0,zs[i]),CombatStats(maxHp:1250,attack:88,armor:22,magicResist:18,moveSpeed:6.5,range:8));e.lane=zs[i];e.mesh=_hero(cs[i]);enemies.add(e);view.scene.add(e.mesh!);}
   }
-  three.Group _hero(int c){final g=three.Group();g.add(mesh(three.CapsuleGeometry(radius:1.6,length:3,capSegments:8,radialSegments:12),c,metal:.2)..position.y=3);g.add(mesh(three.BoxGeometry(4,.8,2),0x24303c,metal:.55)..position.y=4);g.add(mesh(three.SphereGeometry(1.15,16,12),0xe9b994)..position.y=5.8);g.add(mesh(three.OctahedronGeometry(.65,1),0x79e9ff,metal:.3)..position.y=7.2);return g;}
+  three.Group _hero(int c,{bool allied=false}){
+    final g=three.Group();
+    g.add(mesh(three.CapsuleGeometry(radius:1.05,length:2.4,capSegments:6,radialSegments:10),0x263247,metal:.32)..position.y=1.8);
+    g.add(mesh(three.CapsuleGeometry(radius:1.35,length:2.1,capSegments:8,radialSegments:12),c,metal:.38)..position.setValues(0,3.55,0));
+    g.add(mesh(three.BoxGeometry(2.9,.65,1.9),0xd8e3ed,metal:.62)..position.setValues(0,4.05,0));
+    g.add(mesh(three.BoxGeometry(1.65,.5,1.98),c,metal:.42)..position.setValues(0,4.12,-.06));
+    for(final side in [-1.0,1.0]){
+      g.add(mesh(three.SphereGeometry(.82,12,10),c,metal:.35)..position.setValues(side*1.55,4.25,0));
+      g.add(mesh(three.CapsuleGeometry(radius:.38,length:1.6,capSegments:5,radialSegments:8),0x9aa9bc,metal:.5)..position.setValues(side*1.18,2.25,0));
+      g.add(mesh(three.SphereGeometry(.48,10,8),0x263247)..position.setValues(side*.72,.9,0));
+    }
+    g.add(mesh(three.SphereGeometry(.9,16,12),0xe9b994)..position.setValues(0,5.25,0));
+    g.add(mesh(three.ConeGeometry(1.0,1.65,8),0xdce8f5,metal:.45)..position.setValues(0,6.25,0));
+    g.add(mesh(three.BoxGeometry(.26,.22,1.15),0x192638,metal:.3)..position.setValues(0,5.32,.78));
+    g.add(mesh(three.SphereGeometry(.18,8,8),0x79e9ff,metal:.45)..position.setValues(-.32,5.35,.83));
+    g.add(mesh(three.ConeGeometry(1.35,2.7,5),allied?0x173e8a:0x742c3a)..position.setValues(0,2.65,-1.05)..rotation.x=math.pi);
+    g.add(mesh(three.CylinderGeometry(.12,.18,2.7,8),0xd9e4ef,metal:.65)..position.setValues(2.05,3.3,.15)..rotation.z=-.28);
+    g.add(mesh(three.BoxGeometry(.75,.18,.24),0xffd36b,metal:.45)..position.setValues(2.05,2.35,.15));
+    g.add(mesh(three.OctahedronGeometry(.62,1),allied?0x8ef6ff:0xffb8bd,metal:.5)..position.setValues(0,7.35,0));
+    g.add(mesh(three.TorusGeometry(2.05,.09,8,32),allied?0x3fcbff:0xff6676,metal:.25)..rotation.x=math.pi/2..position.setValues(0,.18,0));
+    return g;
+  }
   void _buildJungle(){
     for(final p in [three.Vector3(-25,0,-17),three.Vector3(25,0,17),three.Vector3(-25,0,17),three.Vector3(25,0,-17)]){
       final m=ProUnit('C'+jungle.length.toString(),2,p,CombatStats(maxHp:700,attack:25,armor:12,magicResist:10,moveSpeed:0,range:5));m.mesh=_monster(false);jungle.add(m);view.scene.add(m.mesh!);
@@ -86,12 +120,15 @@ class _Moba3DProState extends State<Moba3DPro> {
     final d=ProUnit('DRAKE',2,three.Vector3(0,0,46),CombatStats(maxHp:6500,attack:90,armor:35,magicResist:30,moveSpeed:0,range:10));d.mesh=_monster(true);d.targetable=false;d.mesh!.visible=false;jungle.add(d);view.scene.add(d.mesh!);
   }
   three.Group _monster(bool boss){final g=three.Group();final c=boss?0x8f45d9:0xc47b31;g.add(mesh(three.SphereGeometry(boss?4.8:2.8,18,12),c,metal:.15)..position.y=boss?4:2.5);g.add(mesh(three.OctahedronGeometry(boss?1.5:.7,1),boss?0x56eaff:0xffbd49)..position.y=boss?8:5);return g;}
-  three.Group _minion(bool ally,bool ranged){final g=three.Group();final c=ally?0x3f8dff:0xe95762;g.add(mesh(three.CylinderGeometry(1.1,1.4,2.5,8),c)..position.y=1.5);g.add(mesh(three.SphereGeometry(.8,12,8),0xe8bd9e)..position.y=3.2);if(ranged)g.add(mesh(three.TorusGeometry(1.2,.18,6,18),0xffd45a)..rotation.x=math.pi/2..position.y=1);return g;}
+  three.Group _minion(bool ally,bool ranged){final g=three.Group();final c=ally?0x3f8dff:0xe95762;g.add(mesh(three.CylinderGeometry(1.1,1.4,2.5,8),c,metal:.18)..position.y=1.5);g.add(mesh(three.SphereGeometry(.8,12,8),0xe8bd9e)..position.y=3.2);g.add(mesh(three.ConeGeometry(.85,1.1,6),0xdbe7ef,metal:.35)..position.y=4);g.add(mesh(three.BoxGeometry(1.6,.28,1.2),0x283446,metal:.4)..position.setValues(0,2.4,.6));if(ranged){g.add(mesh(three.TorusGeometry(1.2,.18,6,18),0xffd45a)..rotation.x=math.pi/2..position.y=1);g.add(mesh(three.CylinderGeometry(.12,.12,1.8,6),0xffd45a,metal:.25)..position.setValues(.95,2.1,.3)..rotation.z=-.4);}return g;}
   void _spawnWave(){if(ended)return;wave++;for(final z in [-34.0,0.0,34.0])for(int i=0;i<3;i++){_addMinion(0,z,-78-i*4,i==2);_addMinion(1,z,78+i*4,i==2);}}
   void _addMinion(int team,double z,double x,bool ranged){final m=ProUnit('M'+minions.length.toString(),team,three.Vector3(x,0,z),CombatStats(maxHp:ranged?260:340,attack:ranged?32:38,armor:8,magicResist:8,moveSpeed:team==0?6.2:5.9,range:ranged?15:4));m.lane=z;m.mesh=_minion(team==0,ranged);minions.add(m);view.scene.add(m.mesh!);}
   void _tick(double dt){
     if(ended)return;time+=dt;waveTimer+=dt;turtleTimer+=dt;drakeTimer+=dt;
     uiRefreshTimer+=dt;
+    if(aimTimer>0){aimTimer=math.max(0,aimTimer-dt);if(aimRing!=null){aimRing!.visible=aimTimer>0;aimRing!.scale.setValues(aimRing!.scale.x+.15*dt,aimRing!.scale.y+.15*dt,aimRing!.scale.z+.15*dt);}}
+    if(player.mesh!=null&&joyX.abs()+joyZ.abs()>.08){player.mesh!.rotation.y=math.atan2(joyX,joyZ);}
+    for(int i=0;i<enemies.length;i++){final e=enemies[i];if(e.mesh!=null&&e.alive){e.mesh!.position.y=.08*math.sin(time*3+i);final dx=player.position.x-e.position.x,dz=player.position.z-e.position.z;if(dx.abs()+dz.abs()>.2)e.mesh!.rotation.y=math.atan2(dx,dz);}}
     if(uiRefreshTimer>=.25){uiRefreshTimer=0;if(mounted)setState((){});}
     if(waveTimer>=24){waveTimer=0;_spawnWave();}
     if(turtleTimer>=150&&jungle.any((x)=>x.id=='TURTLE'&&!x.alive)){_respawn('TURTLE');turtleTimer=0;}
@@ -152,7 +189,7 @@ class _Moba3DProState extends State<Moba3DPro> {
     }}
   void castSkill(int i){if(!player.alive||i<0||i>=skills.length)return;final s=skills[i],l=s.at(level);if((cds[s.id]??0)>0||player.stats.mana<l.cost)return;player.stats.mana-=l.cost;cds[s.id]=l.cooldown;var center=player.position.clone();if(i==1){center.x+=joyX*s.range;center.z+=joyZ*s.range;player.position.setValues(center.x,0,center.z);player.mesh?.position.setValues(center.x,0,center.z);}if(i!=1)center=_nearestPoint();for(final e in enemies)if(e.alive&&_dist(center,e.position)<=s.radius){e.takeDamage(l.damage+player.stats.attack*l.attackRatio,s.damageType);if(i==2)e.status.stun=.8;if(!e.alive){kills++;gold+=180;}}for(final m in minions)if(m.alive&&m.team==1&&_dist(center,m.position)<=s.radius){m.takeDamage(l.damage,s.damageType);if(!m.alive)gold+=45;}_showAim(center,s.radius);}
   three.Vector3 _nearestPoint(){if(enemies.isEmpty)return player.position.clone();enemies.sort((a,b)=>_dist(a.position,player.position).compareTo(_dist(b.position,player.position)));return enemies.first.position.clone();}
-  void _showAim(three.Vector3 p,double r){if(aimRing==null){aimRing=mesh(three.TorusGeometry(1,.08,8,32),0x6ee7ff,metal:.2);view.scene.add(aimRing!);}aimRing!.scale.setValues(r,r,r);aimRing!.position.setValues(p.x,.35,p.z);}
+  void _showAim(three.Vector3 p,double r){if(aimRing==null){aimRing=mesh(three.TorusGeometry(1,.08,8,32),0x6ee7ff,metal:.2);view.scene.add(aimRing!);}aimTimer=.85;aimRing!.visible=true;aimRing!.scale.setValues(r,r,r);aimRing!.position.setValues(p.x,.35,p.z);aimRing!.rotation.z=0;}
   void _camera(){if(!started)return;view.camera.position.setValues(player.position.x-42,58,player.position.z+55);view.camera.lookAt(player.position);}
   void _finish(bool v){if(ended)return;ended=true;won=v;}
 
