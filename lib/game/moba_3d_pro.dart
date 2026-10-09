@@ -156,12 +156,13 @@ class _Moba3DProState extends State<Moba3DPro> {
 
   @override Widget build(BuildContext context){
     if(!started)return Scaffold(body:Center(child:FilledButton.icon(onPressed:start,icon:const Icon(Icons.sports_esports),label:const Text('ENTER ARENA LEGENDS'))));
-    return Scaffold(body:Stack(children:[Positioned.fill(child:view.build()),Positioned(top:10,left:10,right:10,child:_hud()),Positioned(left:18,bottom:18,child:_joystick()),Positioned(right:18,bottom:18,child:_buttons()),if(ended)Positioned.fill(child:_result())]));
+    return Scaffold(body:Stack(children:[Positioned.fill(child:view.build()),Positioned(top:10,left:10,right:10,child:_hud()),Positioned(top:56,right:12,child:_miniMap()),Positioned(left:18,bottom:18,child:_joystick()),Positioned(right:18,bottom:18,child:_buttons()),if(ended)Positioned.fill(child:_result())]));
   }
-  Widget _hud()=>Row(children:[_pill('TIME '+time.toInt().toString()),const SizedBox(width:6),_pill('K/D '+kills.toString()+'/'+deaths.toString()),const SizedBox(width:6),_pill('LV '+level.toString()+' GOLD '+gold.toInt().toString()),const SizedBox(width:6),GestureDetector(onTap:_buyItem,child:_pill('SHOP '+inventory.items.length.toString()+'/6')),const Spacer(),_pill('WAVE '+wave.toString())]);
+  Widget _hud()=>Row(children:[_pill('TIME '+time.toInt().toString()),const SizedBox(width:6),_pill('K/D '+kills.toString()+'/'+deaths.toString()),const SizedBox(width:6),_pill('LV '+level.toString()+' GOLD '+gold.toInt().toString()),const SizedBox(width:6),_pill('HP '+hp.toInt().toString()),const SizedBox(width:6),_pill('MP '+mana.toInt().toString()),const SizedBox(width:6),GestureDetector(onTap:_buyItem,child:_pill('SHOP '+inventory.items.length.toString()+'/6')),const Spacer(),_pill('WAVE '+wave.toString())]);
   void _buyItem(){if(inventory.buy(shopItems[inventory.items.length%shopItems.length],player))setState((){});}
   Widget _pill(String s)=>Material(color:Colors.black.withValues(alpha:.72),borderRadius:BorderRadius.circular(12),child:Padding(padding:const EdgeInsets.symmetric(horizontal:12,vertical:8),child:Text(s,style:const TextStyle(fontWeight:FontWeight.w800))));
   Widget _joystick()=>GestureDetector(onPanUpdate:(d){joyX=(d.localPosition.dx-70)/60;joyZ=(d.localPosition.dy-70)/60;final n=math.sqrt(joyX*joyX+joyZ*joyZ);if(n>1){joyX/=n;joyZ/=n;}},onPanEnd:(_){joyX=0;joyZ=0;},child:Container(width:140,height:140,decoration:BoxDecoration(shape:BoxShape.circle,color:Colors.black54,border:Border.all(color:Colors.white24,width:2)),child:Center(child:Container(width:58,height:58,decoration:const BoxDecoration(shape:BoxShape.circle,color:Colors.white24),child:const Icon(Icons.gamepad,color:Colors.white70)))));
+  Widget _miniMap()=>Container(width:150,height:92,padding:const EdgeInsets.all(7),decoration:BoxDecoration(color:Colors.black.withValues(alpha:.78),borderRadius:BorderRadius.circular(12),border:Border.all(color:Colors.white30)),child:CustomPaint(painter:_MiniMapPainter(playerX:player.position.x,playerZ:player.position.z)));
   Widget _buttons()=>Row(mainAxisSize:MainAxisSize.min,children:[_button('ATK',-1),const SizedBox(width:8),_button('S1',0),const SizedBox(width:8),_button('S2',1),const SizedBox(width:8),_button('ULT',2)]);
   Widget _button(String label,int i){final cd=i<0?0:(cds[skills[i].id]??0);return GestureDetector(onTap:()=>i<0?basicAttack():castSkill(i),child:Container(width:i==2?76:64,height:i==2?76:64,decoration:BoxDecoration(shape:BoxShape.circle,color:i==2?Colors.deepPurple:Colors.blue,border:Border.all(color:Colors.white70,width:2)),child:Center(child:Column(mainAxisSize:MainAxisSize.min,children:[Text(label,style:const TextStyle(fontWeight:FontWeight.w900)),if(i>=0)Text(cd>0?cd.toStringAsFixed(1):'READY',style:const TextStyle(fontSize:10))]))));}
   Widget _result()=>ColoredBox(color:Colors.black87,child:Center(child:Text(won?'VICTORY':'DEFEAT',style:TextStyle(fontSize:60,fontWeight:FontWeight.w900,color:won?Colors.cyanAccent:Colors.redAccent))));
@@ -178,4 +179,33 @@ class ProCore {
   ProCore(double x,double z,int c):mesh=_make(c);
   final three.Group mesh;double hp=6000;bool get alive=>hp>0;
   static three.Group _make(int c){final g=three.Group();g.add(three.Mesh(three.OctahedronGeometry(6,1),three.MeshStandardMaterial(<three.MaterialProperty,dynamic>{three.MaterialProperty.color:c,three.MaterialProperty.metalness:.25,three.MaterialProperty.roughness:.5})));return g;}
+}
+
+class _MiniMapPainter extends CustomPainter {
+  const _MiniMapPainter({required this.playerX, required this.playerZ});
+  final double playerX;
+  final double playerZ;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final road = Paint()..color = const Color(0xff81796b)..strokeWidth = 5..strokeCap = StrokeCap.round;
+    final river = Paint()..color = const Color(0xff258eb4)..strokeWidth = 7;
+    final blue = Paint()..color = const Color(0xff4e91ff);
+    final red = Paint()..color = const Color(0xfff05462);
+    final green = Paint()..color = const Color(0xff3c884b);
+    canvas.drawRRect(RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(7)), green);
+    for (final y in <double>[size.height * .22, size.height * .5, size.height * .78]) {
+      canvas.drawLine(Offset(5, y), Offset(size.width - 5, y), road);
+    }
+    canvas.drawLine(Offset(size.width * .5, 3), Offset(size.width * .5, size.height - 3), river);
+    for (final y in <double>[size.height * .22, size.height * .5, size.height * .78]) {
+      canvas.drawCircle(Offset(size.width * .25, y), 3, blue);
+      canvas.drawCircle(Offset(size.width * .75, y), 3, red);
+    }
+    canvas.drawCircle(Offset(8 + (playerX + 84) / 168 * (size.width - 16), 8 + (playerZ + 56) / 112 * (size.height - 16)), 4.5, Paint()..color = Colors.white..style = PaintingStyle.fill);
+    canvas.drawCircle(Offset(8 + (playerX + 84) / 168 * (size.width - 16), 8 + (playerZ + 56) / 112 * (size.height - 16)), 6, Paint()..color = Colors.white.withValues(alpha:.65)..style = PaintingStyle.stroke..strokeWidth = 1.2);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MiniMapPainter oldDelegate) => oldDelegate.playerX != playerX || oldDelegate.playerZ != playerZ;
 }
