@@ -24,7 +24,6 @@ class _Moba3DProState extends State<Moba3DPro> {
   final Map<String,List<three.Group>> _rigParts={};
   final List<_BattleEffect> _effects=[];
   final List<_Projectile> _projectiles=[];
-  double _combatFxBudget=0;
 
   final skills=<SkillData>[
     SkillData(id:'slash',name:'SLASH',levels:[
@@ -225,7 +224,109 @@ class _Moba3DProState extends State<Moba3DPro> {
   void _camera(){if(!started)return;view.camera.position.setValues(player.position.x-42,58,player.position.z+55);view.camera.lookAt(player.position);}
   void _finish(bool v){if(ended)return;ended=true;won=v;joyX=0;joyZ=0;if(mounted)setState((){});}
 
-  Widget _mainMenu()=>Scaffold(body:Container(decoration:const BoxDecoration(gradient:LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Color(0xff06101e),Color(0xff102f3d),Color(0xff07160f)])),child:Stack(children:[Positioned(right:-70,top:-80,child:Container(width:280,height:280,decoration:BoxDecoration(shape:BoxShape.circle,color:const Color(0xff29c9e8).withValues(alpha:.09)))),Positioned(left:-90,bottom:-110,child:Container(width:320,height:320,decoration:BoxDecoration(shape:BoxShape.circle,color:const Color(0xff2867ff).withValues(alpha:.12)))),SafeArea(child:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(22),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:760),child:Container(padding:const EdgeInsets.all(24),decoration:BoxDecoration(color:const Color(0xdd081522),borderRadius:BorderRadius.circular(26),border:Border.all(color:const Color(0xff55dff2).withValues(alpha:.42)),boxShadow:const [BoxShadow(color:Color(0x3327c9e9),blurRadius:32)]),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[Container(width:58,height:58,decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xff32d9f2),Color(0xff3168ff)]),borderRadius:BorderRadius.circular(17)),child:const Icon(Icons.shield_moon,size:34,color:Colors.white)),const SizedBox(width:14),const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('ARENA LEGENDS',style:TextStyle(fontSize:28,fontWeight:FontWeight.w900,letterSpacing:2,color:Colors.white)),Text('3D MOBILE MOBA • OFFLINE BATTLE',style:TextStyle(fontSize:11,fontWeight:FontWeight.w800,letterSpacing:1.4,color:Color(0xff6de9ff)))]))]),const SizedBox(height:22),Container(height:145,width:double.infinity,decoration:BoxDecoration(borderRadius:BorderRadius.circular(18),gradient:const LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Color(0xff174b5b),Color(0xff142b49),Color(0xff311b50)])),child:Stack(children:[Positioned(left:18,top:18,child:Icon(Icons.auto_awesome,size:34,color:Color(0xff7af3ff))),Positioned(right:28,top:16,child:Icon(Icons.bolt,size:42,color:Color(0xffffcf6e))),const Center(child:Icon(Icons.sports_martial_arts,size:88,color:Color(0xffd8f5ff))),Positioned(left:16,bottom:12,child:Text('ENTER THE BATTLEFIELD',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w900,letterSpacing:2,fontSize:13)))])),const SizedBox(height:18),const Text('Pilih lane. Kalahkan lawan. Hancurkan crystal musuh.',style:TextStyle(color:Color(0xffd3e3ef),fontSize:14)),const SizedBox(height:16),Wrap(spacing:8,runSpacing:8,children:[_menuTag(Icons.view_in_ar,'3D ARENA'),_menuTag(Icons.route,'3 LANES'),_menuTag(Icons.auto_awesome,'HERO SKILLS'),_menuTag(Icons.castle,'TOWER SIEGE')]),const SizedBox(height:22),SizedBox(width:double.infinity,height:58,child:FilledButton.icon(style:FilledButton.styleFrom(backgroundColor:const Color(0xff22c9e8),foregroundColor:const Color(0xff061522),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16))),onPressed:start,icon:const Icon(Icons.play_arrow_rounded,size:30),label:const Text('MULAI PERTANDINGAN',style:TextStyle(fontSize:16,fontWeight:FontWeight.w900,letterSpacing:1)))),const SizedBox(height:10),const Center(child:Text('SINGLE PLAYER • TOUCH CONTROLS • ORIGINAL HEROES',textAlign:TextAlign.center,style:TextStyle(fontSize:10,color:Color(0xff8ca9bc),letterSpacing:1.1)))])))))]))));
+  Widget _mainMenu() {
+    return Scaffold(
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xff06101e), Color(0xff102f3d), Color(0xff07160f)],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(22),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color(0xdd081522),
+                    borderRadius: BorderRadius.circular(26),
+                    border: Border.all(color: const Color(0xff55dff2).withValues(alpha: .42)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.shield_moon, size: 48, color: Color(0xff6de9ff)),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('ARENA LEGENDS', style: TextStyle(fontSize: 27, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.white)),
+                                Text('3D MOBILE MOBA • OFFLINE BATTLE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xff6de9ff))),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        height: 145,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xff174b5b), Color(0xff142b49), Color(0xff311b50)],
+                          ),
+                        ),
+                        child: const Stack(
+                          children: [
+                            Positioned(left: 18, top: 18, child: Icon(Icons.auto_awesome, size: 34, color: Color(0xff7af3ff))),
+                            Positioned(right: 28, top: 16, child: Icon(Icons.bolt, size: 42, color: Color(0xffffcf6e))),
+                            Center(child: Icon(Icons.sports_martial_arts, size: 88, color: Color(0xffd8f5ff))),
+                            Positioned(left: 16, bottom: 12, child: Text('ENTER THE BATTLEFIELD', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 13))),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text('Pilih lane. Kalahkan lawan. Hancurkan crystal musuh.', style: TextStyle(color: Color(0xffd3e3ef), fontSize: 14)),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _menuTag(Icons.view_in_ar, '3D ARENA'),
+                          _menuTag(Icons.route, '3 LANES'),
+                          _menuTag(Icons.auto_awesome, 'HERO SKILLS'),
+                          _menuTag(Icons.castle, 'TOWER SIEGE'),
+                        ],
+                      ),
+                      const SizedBox(height: 22),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 58,
+                        child: FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xff22c9e8),
+                            foregroundColor: const Color(0xff061522),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          onPressed: start,
+                          icon: const Icon(Icons.play_arrow_rounded, size: 30),
+                          label: const Text('MULAI PERTANDINGAN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Center(child: Text('SINGLE PLAYER • TOUCH CONTROLS • ORIGINAL HEROES', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, color: Color(0xff8ca9bc), letterSpacing: 1.1))),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
   Widget _menuTag(IconData icon,String label)=>Container(padding:const EdgeInsets.symmetric(horizontal:11,vertical:9),decoration:BoxDecoration(color:const Color(0xff173043),borderRadius:BorderRadius.circular(10),border:Border.all(color:const Color(0xff35546b))),child:Row(mainAxisSize:MainAxisSize.min,children:[Icon(icon,size:15,color:const Color(0xff72eaff)),const SizedBox(width:6),Text(label,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:Colors.white))]));
 
   @override Widget build(BuildContext context){
@@ -233,7 +334,7 @@ class _Moba3DProState extends State<Moba3DPro> {
     return Scaffold(body:Stack(children:[Positioned.fill(child:view.build()),Positioned(top:10,left:10,right:10,child:_hud()),Positioned(top:56,right:12,child:_miniMap()),Positioned(left:18,bottom:18,child:_joystick()),Positioned(right:18,bottom:18,child:_buttons()),if(ended)Positioned.fill(child:_result())]));
   }
   Widget _hud()=>Row(children:[_pill('TIME '+time.toInt().toString()),const SizedBox(width:6),_pill('K/D '+kills.toString()+'/'+deaths.toString()),const SizedBox(width:6),_pill('LV '+level.toString()+' GOLD '+gold.toInt().toString()),const SizedBox(width:6),_pill('HP '+hp.toInt().toString()),const SizedBox(width:6),_pill('MP '+mana.toInt().toString()),const SizedBox(width:6),GestureDetector(onTap:_buyItem,child:_pill('SHOP '+inventory.items.length.toString()+'/6')),const Spacer(),_pill('WAVE '+wave.toString())]);
-  void _earnGold(int amount){gold+=amount;player.gold+=amount;}
+  void _earnGold(int amount){gold+=amount.toDouble();player.gold+=amount;}
   void _buyItem(){if(inventory.buy(shopItems[inventory.items.length%shopItems.length],player)){gold=player.gold;setState((){});}}
   Widget _pill(String s)=>Material(color:Colors.black.withValues(alpha:.72),borderRadius:BorderRadius.circular(12),child:Padding(padding:const EdgeInsets.symmetric(horizontal:12,vertical:8),child:Text(s,style:const TextStyle(fontWeight:FontWeight.w800))));
   Widget _joystick()=>GestureDetector(onPanUpdate:(d){joyX=(d.localPosition.dx-70)/60;joyZ=(d.localPosition.dy-70)/60;final n=math.sqrt(joyX*joyX+joyZ*joyZ);if(n>1){joyX/=n;joyZ/=n;}},onPanEnd:(_){joyX=0;joyZ=0;},child:Container(width:140,height:140,decoration:BoxDecoration(shape:BoxShape.circle,color:Colors.black54,border:Border.all(color:Colors.white24,width:2)),child:Center(child:Transform.translate(offset:Offset(joyX*27,joyZ*27),child:Container(width:58,height:58,decoration:BoxDecoration(shape:BoxShape.circle,color:const Color(0xff8beaff).withValues(alpha:.28),border:Border.all(color:Colors.white54,width:1.5),boxShadow:const [BoxShadow(color:Color(0x5539cfff),blurRadius:12)]),child:const Icon(Icons.gamepad,color:Colors.white70))))));
