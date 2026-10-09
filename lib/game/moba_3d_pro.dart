@@ -47,7 +47,7 @@ class _Moba3DProState extends State<Moba3DPro> {
       view=three.ThreeJS(
         onSetupComplete:(){if(mounted)setState(()=>sceneReady=true);},
         setup:_setup,
-        settings:three.Settings(useOpenGL:true,renderOptions:<String,dynamic>{'antialias':true,'powerPreference':'high-performance'}),
+        settings:three.Settings(renderOptions:<String,dynamic>{'antialias':true,'powerPreference':'high-performance'}),
       );
       setState(()=>started=true);
     } catch (e, stack) {
