@@ -11,7 +11,7 @@ class Moba3DPro extends StatefulWidget {
 class _Moba3DProState extends State<Moba3DPro> {
   late three.ThreeJS view;
   bool started=false,ended=false,won=false;
-  double time=0,waveTimer=0,turtleTimer=0,drakeTimer=0,respawn=0;
+  double time=0,waveTimer=0,turtleTimer=0,drakeTimer=0,respawn=0,uiRefreshTimer=0;
   double joyX=0,joyZ=0,gold=500,hp=1600,mana=700;
   int kills=0,deaths=0,level=1,wave=0;
   final Map<String,double> cds={};
@@ -91,6 +91,8 @@ class _Moba3DProState extends State<Moba3DPro> {
   void _addMinion(int team,double z,double x,bool ranged){final m=ProUnit('M'+minions.length.toString(),team,three.Vector3(x,0,z),CombatStats(maxHp:ranged?260:340,attack:ranged?32:38,armor:8,magicResist:8,moveSpeed:team==0?6.2:5.9,range:ranged?15:4));m.lane=z;m.mesh=_minion(team==0,ranged);minions.add(m);view.scene.add(m.mesh!);}
   void _tick(double dt){
     if(ended)return;time+=dt;waveTimer+=dt;turtleTimer+=dt;drakeTimer+=dt;
+    uiRefreshTimer+=dt;
+    if(uiRefreshTimer>=.25){uiRefreshTimer=0;if(mounted)setState((){});}
     if(waveTimer>=24){waveTimer=0;_spawnWave();}
     if(turtleTimer>=150&&jungle.any((x)=>x.id=='TURTLE'&&!x.alive)){_respawn('TURTLE');turtleTimer=0;}
     if(drakeTimer>=180&&jungle.any((x)=>x.id=='DRAKE'&&!x.alive)){_respawn('DRAKE');drakeTimer=0;}
