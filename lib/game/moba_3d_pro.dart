@@ -10,7 +10,8 @@ class Moba3DPro extends StatefulWidget {
 }
 class _Moba3DProState extends State<Moba3DPro> {
   late three.ThreeJS view;
-  bool started=false,ended=false,won=false;
+  bool started=false,ended=false,won=false,sceneReady=false;
+  String? gameError;
   double time=0,waveTimer=0,turtleTimer=0,drakeTimer=0,respawn=0,uiRefreshTimer=0;
   double joyX=0,joyZ=0,gold=500,hp=1600,mana=700;
   int kills=0,deaths=0,level=1,wave=0;
@@ -40,16 +41,38 @@ class _Moba3DProState extends State<Moba3DPro> {
   @override void initState(){super.initState();}
   @override void dispose(){if(started)view.dispose();super.dispose();}
   void start(){
-    setState(()=>started=true);
-    view=three.ThreeJS(onSetupComplete:(){if(mounted)setState((){});},setup:_setup,
-      settings:three.Settings(renderOptions:<String,dynamic>{'antialias':true,'powerPreference':'high-performance'}));
+    try {
+      gameError=null;
+      sceneReady=false;
+      view=three.ThreeJS(
+        onSetupComplete:(){if(mounted)setState(()=>sceneReady=true);},
+        setup:_setup,
+        settings:three.Settings(useOpenGL:true,renderOptions:<String,dynamic>{'antialias':true,'powerPreference':'high-performance'}),
+      );
+      setState(()=>started=true);
+    } catch (e, stack) {
+      debugPrint('Arena Legends renderer initialization failed: $e\\n$stack');
+      setState(()=>gameError='Renderer gagal dimulai: $e');
+    }
   }
   Future<void> _setup() async {
-    view.camera=three.PerspectiveCamera(48,view.width/math.max(1.0,view.height),.1,2500);
-    view.scene=three.Scene();view.scene.background=three.Color(.035,.09,.06);
-    view.scene.add(three.HemisphereLight(0xdaf6ff,0x122015,1.8));
-    final sun=three.DirectionalLight(0xffffff,2.5);sun.position.setValues(-80,150,60);view.scene.add(sun);
-    _buildMap();_buildBases();_buildHeroes();_buildJungle();_spawnWave();view.addAnimationEvent(_tick);_camera();
+    try {
+      view.camera=three.PerspectiveCamera(48,view.width/math.max(1.0,view.height),.1,2500);
+      view.scene=three.Scene();
+      view.scene.background=three.Color(0x163329);
+      view.scene.add(three.HemisphereLight(0xdaf6ff,0x122015,1.8));
+      final sun=three.DirectionalLight(0xffffff,2.5);
+      sun.position.setValues(-80,150,60);
+      view.scene.add(sun);
+      _buildMap();_buildBases();_buildHeroes();_buildJungle();_spawnWave();
+      view.addAnimationEvent(_tick);
+      _camera();
+    } catch (e, stack) {
+      debugPrint('Arena Legends scene setup failed: $e\\n$stack');
+      gameError='Scene 3D gagal dimuat: $e';
+      if(mounted)setState((){});
+      rethrow;
+    }
   }
   three.Mesh mesh(three.BufferGeometry g,int c,{double metal=.05})=>three.Mesh(g,three.MeshStandardMaterial(<three.MaterialProperty,dynamic>{
     three.MaterialProperty.color:c,three.MaterialProperty.metalness:metal,three.MaterialProperty.roughness:.72}));
@@ -333,9 +356,25 @@ class _Moba3DProState extends State<Moba3DPro> {
 
   @override Widget build(BuildContext context){
     if(!started)return _mainMenu();
-    return Scaffold(body:Stack(children:[Positioned.fill(child:view.build()),Positioned(top:10,left:10,right:10,child:_hud()),Positioned(top:56,right:12,child:_miniMap()),Positioned(left:18,bottom:18,child:_joystick()),Positioned(right:18,bottom:18,child:_buttons()),if(ended)Positioned.fill(child:_result())]));
+    return Scaffold(
+      backgroundColor:const Color(0xff10251d),
+      body:Stack(children:[
+        Positioned.fill(child:view.build()),
+        if(!sceneReady&&gameError==null)
+          const Positioned.fill(child:ColoredBox(color:Color(0xff10251d),child:Center(child:Column(mainAxisSize:MainAxisSize.min,children:[CircularProgressIndicator(color:Color(0xff6de9ff)),SizedBox(height:16),Text('MEMUAT ARENA 3D...',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w800))])))),
+        if(gameError!=null)
+          Positioned.fill(child:ColoredBox(color:Color(0xff101923),child:Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(mainAxisSize:MainAxisSize.min,children:[const Icon(Icons.error_outline,color:Colors.orangeAccent,size:48),const SizedBox(height:12),const Text('ARENA GAGAL DIMUAT',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w900,fontSize:20)),const SizedBox(height:10),Text(gameError!,textAlign:TextAlign.center,style:const TextStyle(color:Colors.white70)),const SizedBox(height:18),FilledButton.icon(onPressed:(){if(mounted)setState(()=>started=false);},icon:const Icon(Icons.arrow_back),label:const Text('KEMBALI KE MENU'))]))))),
+        if(sceneReady&&gameError==null)...[
+          Positioned(top:10,left:10,right:10,child:_hud()),
+          Positioned(top:56,right:12,child:_miniMap()),
+          Positioned(left:18,bottom:18,child:_joystick()),
+          Positioned(right:18,bottom:18,child:_buttons()),
+          if(ended)Positioned.fill(child:_result()),
+        ],
+      ]),
+    );
   }
-  Widget _hud()=>Row(children:[_pill('TIME '+time.toInt().toString()),const SizedBox(width:6),_pill('K/D '+kills.toString()+'/'+deaths.toString()),const SizedBox(width:6),_pill('LV '+level.toString()+' GOLD '+gold.toInt().toString()),const SizedBox(width:6),_pill('HP '+hp.toInt().toString()),const SizedBox(width:6),_pill('MP '+mana.toInt().toString()),const SizedBox(width:6),GestureDetector(onTap:_buyItem,child:_pill('SHOP '+inventory.items.length.toString()+'/6')),const Spacer(),_pill('WAVE '+wave.toString())]);
+    Widget _hud()=>Row(children:[_pill('TIME '+time.toInt().toString()),const SizedBox(width:6),_pill('K/D '+kills.toString()+'/'+deaths.toString()),const SizedBox(width:6),_pill('LV '+level.toString()+' GOLD '+gold.toInt().toString()),const SizedBox(width:6),_pill('HP '+hp.toInt().toString()),const SizedBox(width:6),_pill('MP '+mana.toInt().toString()),const SizedBox(width:6),GestureDetector(onTap:_buyItem,child:_pill('SHOP '+inventory.items.length.toString()+'/6')),const Spacer(),_pill('WAVE '+wave.toString())]);
   void _earnGold(int amount){gold+=amount.toDouble();player.gold+=amount;}
   void _buyItem(){if(inventory.buy(shopItems[inventory.items.length%shopItems.length],player)){gold=player.gold.toDouble();setState((){});}}
   Widget _pill(String s)=>Material(color:Colors.black.withValues(alpha:.72),borderRadius:BorderRadius.circular(12),child:Padding(padding:const EdgeInsets.symmetric(horizontal:12,vertical:8),child:Text(s,style:const TextStyle(fontWeight:FontWeight.w800))));
