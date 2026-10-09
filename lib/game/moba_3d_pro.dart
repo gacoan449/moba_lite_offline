@@ -50,6 +50,11 @@ class _Moba3DProState extends State<Moba3DPro> {
         settings:three.Settings(renderOptions:<String,dynamic>{'antialias':true,'powerPreference':'high-performance'}),
       );
       setState(()=>started=true);
+      Future<void>.delayed(const Duration(seconds:20),(){
+        if(mounted&&started&&!sceneReady&&gameError==null){
+          setState(()=>gameError='Pemuatan 3D melewati batas waktu. Renderer tidak menyelesaikan inisialisasi. Coba tutup lalu buka game; jika tetap terjadi, kirim log Android.');
+        }
+      });
     } catch (e, stack) {
       debugPrint('Arena Legends renderer initialization failed: $e\\n$stack');
       setState(()=>gameError='Renderer gagal dimulai: $e');
@@ -67,6 +72,9 @@ class _Moba3DProState extends State<Moba3DPro> {
       _buildMap();_buildBases();_buildHeroes();_buildJungle();_spawnWave();
       view.addAnimationEvent(_tick);
       _camera();
+      // In three_js 0.2.x the setup callback can complete without firing
+      // onSetupComplete on every platform, so mark the scene ready here.
+      if(mounted)setState(()=>sceneReady=true);
     } catch (e, stack) {
       debugPrint('Arena Legends scene setup failed: $e\\n$stack');
       gameError='Scene 3D gagal dimuat: $e';
