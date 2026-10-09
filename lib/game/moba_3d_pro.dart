@@ -95,6 +95,8 @@ class _Moba3DProState extends State<Moba3DPro> {
   }
   three.Group _hero(int c,{bool allied=false,String rigId=''}){
     final g=three.Group();
+    // Lightweight fake contact shadow keeps the hero grounded on mobile GPUs.
+    g.add(mesh(three.CircleGeometry(2.35,20),0x17251d)..rotation.x=-math.pi/2..position.y=.07..scale.setValues(1,.58,1));
     g.add(mesh(three.CapsuleGeometry(radius:1.05,length:2.4,capSegments:6,radialSegments:10),0x263247,metal:.32)..position.y=1.8);
     g.add(mesh(three.CapsuleGeometry(radius:1.35,length:2.1,capSegments:8,radialSegments:12),c,metal:.38)..position.setValues(0,3.55,0));
     g.add(mesh(three.BoxGeometry(2.9,.65,1.9),0xd8e3ed,metal:.62)..position.setValues(0,4.05,0));
