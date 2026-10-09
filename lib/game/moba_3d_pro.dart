@@ -21,6 +21,10 @@ class _Moba3DProState extends State<Moba3DPro> {
   late ProUnit player; late ProCore blue,red;
   three.Mesh? aimRing;
   double aimTimer=0;
+  final Map<String,List<three.Group>> _rigParts={};
+  final List<_BattleEffect> _effects=[];
+  final List<_Projectile> _projectiles=[];
+  double _combatFxBudget=0;
 
   final skills=<SkillData>[
     SkillData(id:'slash',name:'SLASH',levels:[
@@ -86,30 +90,40 @@ class _Moba3DProState extends State<Moba3DPro> {
   three.Group _towerMesh(int c){final g=three.Group();g.add(mesh(three.CylinderGeometry(2.8,3.7,4,8),0x343b43,metal:.35)..position.y=2);g.add(mesh(three.CylinderGeometry(2.1,2.5,1,8),c,metal:.3)..position.y=4.3);g.add(mesh(three.OctahedronGeometry(2.2,1),c,metal:.3)..position.y=5.5);g.add(mesh(three.TorusGeometry(2.4,.18,8,24),0xffe8a3,metal:.25)..rotation.x=math.pi/2..position.y=4.8);g.add(mesh(three.ConeGeometry(1.15,2.4,8),0xeafaff,metal:.4)..position.y=7.6);return g;}
   void _buildHeroes(){
     player=ProUnit('P',0,three.Vector3(-70,0,0),CombatStats(maxHp:1600,attack:135,armor:28,magicResist:24,moveSpeed:14,range:8,maxMana:700));
-    player.mesh=_hero(0x3e8cff,allied:true);view.scene.add(player.mesh!);
+    player.mesh=_hero(0x3e8cff,allied:true,rigId:player.id);view.scene.add(player.mesh!);
     final zs=[-34.0,34.0,-10.0,10.0,0.0];final cs=[0xf05b68,0xd96c4e,0xc95fe0,0xe0b14d,0x72c8e8];
-    for(int i=0;i<5;i++){final e=ProUnit('E$i',1,three.Vector3(70,0,zs[i]),CombatStats(maxHp:1250,attack:88,armor:22,magicResist:18,moveSpeed:6.5,range:8));e.lane=zs[i];e.mesh=_hero(cs[i]);enemies.add(e);view.scene.add(e.mesh!);}
+    for(int i=0;i<5;i++){final e=ProUnit('E$i',1,three.Vector3(70,0,zs[i]),CombatStats(maxHp:1250,attack:88,armor:22,magicResist:18,moveSpeed:6.5,range:8));e.lane=zs[i];e.mesh=_hero(cs[i],rigId:e.id);enemies.add(e);view.scene.add(e.mesh!);}
   }
-  three.Group _hero(int c,{bool allied=false}){
+  three.Group _hero(int c,{bool allied=false,String rigId=''}){
     final g=three.Group();
     g.add(mesh(three.CapsuleGeometry(radius:1.05,length:2.4,capSegments:6,radialSegments:10),0x263247,metal:.32)..position.y=1.8);
     g.add(mesh(three.CapsuleGeometry(radius:1.35,length:2.1,capSegments:8,radialSegments:12),c,metal:.38)..position.setValues(0,3.55,0));
     g.add(mesh(three.BoxGeometry(2.9,.65,1.9),0xd8e3ed,metal:.62)..position.setValues(0,4.05,0));
     g.add(mesh(three.BoxGeometry(1.65,.5,1.98),c,metal:.42)..position.setValues(0,4.12,-.06));
     for(final side in [-1.0,1.0]){
-      g.add(mesh(three.SphereGeometry(.82,12,10),c,metal:.35)..position.setValues(side*1.55,4.25,0));
-      g.add(mesh(three.CapsuleGeometry(radius:.38,length:1.6,capSegments:5,radialSegments:8),0x9aa9bc,metal:.5)..position.setValues(side*1.18,2.25,0));
-      g.add(mesh(three.SphereGeometry(.48,10,8),0x263247)..position.setValues(side*.72,.9,0));
+      final shoulder=three.Group()..position.setValues(side*1.45,4.15,0);
+      shoulder.add(mesh(three.SphereGeometry(.82,12,10),c,metal:.35));
+      shoulder.add(mesh(three.CapsuleGeometry(radius:.38,length:1.6,capSegments:5,radialSegments:8),0x9aa9bc,metal:.5)..position.y=-1.45);
+      shoulder.add(mesh(three.BoxGeometry(.8,.24,.65),0xffd36b,metal:.45)..position.setValues(0,-2.25,.2));
+      g.add(shoulder);
+      final leg=three.Group()..position.setValues(side*.72,1.15,0);
+      leg.add(mesh(three.CapsuleGeometry(radius:.38,length:1.6,capSegments:5,radialSegments:8),0x263247,metal:.35)..position.y=-.25);
+      leg.add(mesh(three.BoxGeometry(.9,.35,1.25),0x64768c,metal:.4)..position.setValues(0,-1.1,.35));
+      g.add(leg);
     }
     g.add(mesh(three.SphereGeometry(.9,16,12),0xe9b994)..position.setValues(0,5.25,0));
     g.add(mesh(three.ConeGeometry(1.0,1.65,8),0xdce8f5,metal:.45)..position.setValues(0,6.25,0));
     g.add(mesh(three.BoxGeometry(.26,.22,1.15),0x192638,metal:.3)..position.setValues(0,5.32,.78));
     g.add(mesh(three.SphereGeometry(.18,8,8),0x79e9ff,metal:.45)..position.setValues(-.32,5.35,.83));
     g.add(mesh(three.ConeGeometry(1.35,2.7,5),allied?0x173e8a:0x742c3a)..position.setValues(0,2.65,-1.05)..rotation.x=math.pi);
-    g.add(mesh(three.CylinderGeometry(.12,.18,2.7,8),0xd9e4ef,metal:.65)..position.setValues(2.05,3.3,.15)..rotation.z=-.28);
+    final sword=three.Group()..position.setValues(2.05,3.3,.15)..rotation.z=-.28;
+    sword.add(mesh(three.CylinderGeometry(.12,.18,2.7,8),0xd9e4ef,metal:.65));
+    sword.add(mesh(three.ConeGeometry(.16,.5,8),0xeafaff,metal:.5)..position.y=1.58);
+    g.add(sword);
     g.add(mesh(three.BoxGeometry(.75,.18,.24),0xffd36b,metal:.45)..position.setValues(2.05,2.35,.15));
     g.add(mesh(three.OctahedronGeometry(.62,1),allied?0x8ef6ff:0xffb8bd,metal:.5)..position.setValues(0,7.35,0));
     g.add(mesh(three.TorusGeometry(2.05,.09,8,32),allied?0x3fcbff:0xff6676,metal:.25)..rotation.x=math.pi/2..position.setValues(0,.18,0));
+    _rigParts[rigId]=g.children.whereType<three.Group>().where((part)=>part.children.length>=2).take(4).toList();
     return g;
   }
   void _buildJungle(){
@@ -126,7 +140,9 @@ class _Moba3DProState extends State<Moba3DPro> {
   void _tick(double dt){
     if(ended)return;time+=dt;waveTimer+=dt;turtleTimer+=dt;drakeTimer+=dt;
     uiRefreshTimer+=dt;
-    if(aimTimer>0){aimTimer=math.max(0,aimTimer-dt);if(aimRing!=null){aimRing!.visible=aimTimer>0;aimRing!.scale.setValues(aimRing!.scale.x+.15*dt,aimRing!.scale.y+.15*dt,aimRing!.scale.z+.15*dt);}}
+    _updateCombatEffects(dt);
+    if(aimTimer>0){aimTimer=math.max(0,aimTimer-dt);if(aimRing!=null){aimRing!.visible=aimTimer>0;final s=aimRing!.scale.x+dt*1.8;aimRing!.scale.setValues(s,s,s);}}
+    _animateHeroes();
     if(player.mesh!=null&&joyX.abs()+joyZ.abs()>.08){player.mesh!.rotation.y=math.atan2(joyX,joyZ);}
     for(int i=0;i<enemies.length;i++){final e=enemies[i];if(e.mesh!=null&&e.alive){e.mesh!.position.y=.08*math.sin(time*3+i);final dx=player.position.x-e.position.x,dz=player.position.z-e.position.z;if(dx.abs()+dz.abs()>.2)e.mesh!.rotation.y=math.atan2(dx,dz);}}
     if(uiRefreshTimer>=.25){uiRefreshTimer=0;if(mounted)setState((){});}
@@ -142,6 +158,9 @@ class _Moba3DProState extends State<Moba3DPro> {
     player.status.tick(dt);player.stats.mana=math.min(player.stats.maxMana,player.stats.mana+18*dt);
     mana=player.stats.mana;hp=player.stats.hp;for(final k in cds.keys.toList())cds[k]=math.max(0,(cds[k]??0)-dt);
   }
+  void _animateHeroes(){
+    for(final entry in _rigParts.entries){final id=entry.key;final unit=id=='P'?player:enemies.cast<ProUnit?>().firstWhere((u)=>u?.id==id,orElse:()=>null);if(unit==null||unit.mesh==null)continue;final moving=id=='P'?(joyX.abs()+joyZ.abs()>.08):unit.alive;final phase=time*(moving?9:2)+(id.hashCode%7);final parts=entry.value;if(parts.length>=4){parts[0].rotation.x=math.sin(phase)*.48;parts[1].rotation.x=-math.sin(phase)*.48;parts[2].rotation.x=-math.sin(phase)*.55;parts[3].rotation.x=math.sin(phase)*.55;}if(!unit.alive){unit.mesh!.rotation.z=math.min(math.pi/2,unit.mesh!.rotation.z+0.035);}}
+  }
   void _allyUpdate(double dt){
     for(final a in allies){
       if(!a.alive)continue;
@@ -156,7 +175,13 @@ class _Moba3DProState extends State<Moba3DPro> {
     if(!target.alive){kills++;_earnGold(180);level=math.min(15,1+kills~/2);}
   }
   void _enemyUpdate(double dt){
-    for(final e in enemies){if(!e.alive){e.respawnTimer-=dt;if(e.respawnTimer<=0){e.stats.hp=e.stats.maxHp;e.targetable=true;e.position.setValues(70,0,e.lane);e.mesh?.visible=true;}continue;}if(!player.alive)continue;final d=_dist(e.position,player.position);if(d<12){e.attackTimer-=dt;if(e.attackTimer<=0){e.attackTimer=1;_damagePlayer(e.stats.attack);}}else if(d<65)_move(e,player.position,dt);}
+    for(final e in enemies){if(!e.alive){e.respawnTimer-=dt;if(e.respawnTimer<=0){e.stats.hp=e.stats.maxHp;e.targetable=true;e.position.setValues(70,0,e.lane);e.mesh?.rotation.z=0;e.mesh?.rotation.x=0;e.mesh?.position.setValues(70,0,e.lane);e.mesh?.visible=true;}continue;}
+      ProUnit? target;double best=player.alive? _dist(e.position,player.position):double.infinity;
+      if(player.alive&&best<20)target=player;
+      for(final m in minions.where((m)=>m.alive&&m.team==0)){final d=_dist(e.position,m.position);if(d<best&&d<24){best=d;target=m;}}
+      if(target!=null){if(best<e.stats.range+3){e.attackTimer-=dt;if(e.attackTimer<=0){e.attackTimer=1.15;_spawnProjectile(e.position,target.position,0xffff7a66,7.5,e.stats.attack,target);}}else _move(e,target.position,dt);}
+      else{final alliedTowers=towers.where((t)=>t.ally&&t.alive).toList()..sort((a,b)=>_dist(e.position,a.position).compareTo(_dist(e.position,b.position)));if(alliedTowers.isNotEmpty&&_dist(e.position,alliedTowers.first.position)<18){e.attackTimer-=dt;if(e.attackTimer<=0){e.attackTimer=1.4;alliedTowers.first.hp=math.max(0,alliedTowers.first.hp-e.stats.attack*.65);}}else _move(e,three.Vector3(-55,0,e.lane),dt);}
+    }
   }
   void _minionUpdate(double dt){
     for(final m in minions)if(m.alive){ProUnit? target;double best=m.stats.range+2;for(final o in minions)if(o.alive&&o.team!=m.team&&(o.position.z-m.position.z).abs()<7){final d=_dist(m.position,o.position);if(d<best){best=d;target=o;}}if(target!=null){m.attackTimer-=dt;if(m.attackTimer<=0){m.attackTimer=.8;target.takeDamage(m.stats.attack,MobaDamageType.physical);}}else{
@@ -173,25 +198,31 @@ class _Moba3DProState extends State<Moba3DPro> {
   void _towerUpdate(double dt){
     for(final t in towers)if(t.alive){t.attackTimer-=dt;if(t.attackTimer>0)continue;final team=t.ally?0:1;final candidates=<ProUnit>[...minions.where((m)=>m.alive&&m.team!=team),...enemies.where((e)=>e.alive&&e.team!=team)];if(!t.ally&&player.alive)candidates.add(player);candidates.sort((a,b)=>_dist(a.position,t.position).compareTo(_dist(b.position,t.position)));for(final c in candidates)if(_dist(c.position,t.position)<22){c.takeDamage(70,MobaDamageType.physical);t.attackTimer=1;break;}}
   }
-  void _move(ProUnit u,three.Vector3 p,double dt){final dx=p.x-u.position.x,dz=p.z-u.position.z,d=math.sqrt(dx*dx+dz*dz);if(d>.01){u.position.x+=dx/d*u.stats.moveSpeed*dt;u.position.z+=dz/d*u.stats.moveSpeed*dt;u.mesh?.position.setValues(u.position.x,0,u.position.z);}}
-  void _damagePlayer(double raw){if(!player.alive)return;player.takeDamage(raw,MobaDamageType.physical);if(!player.alive){deaths++;respawn=6;player.targetable=false;player.mesh?.visible=false;}}
-  void _respawnPlayer(){player.stats.hp=player.stats.maxHp;player.stats.mana=player.stats.maxMana;player.targetable=true;player.position.setValues(-70,0,0);player.mesh?.position.setValues(-70,0,0);player.mesh?.visible=true;}
+  void _move(ProUnit u,three.Vector3 p,double dt){final dx=p.x-u.position.x,dz=p.z-u.position.z,d=math.sqrt(dx*dx+dz*dz);if(d>.01){final step=math.min(d, u.stats.moveSpeed*dt);u.position.x+=dx/d*step;u.position.z+=dz/d*step;u.mesh?.position.setValues(u.position.x,0,u.position.z);if(u.mesh!=null)u.mesh!.rotation.y=math.atan2(dx,dz);}}
+  void _damagePlayer(double raw){if(!player.alive)return;player.takeDamage(raw,MobaDamageType.physical);_spawnBurst(player.position,0xffff4f70,2.5);if(!player.alive){deaths++;respawn=6;player.targetable=false;player.mesh?.rotation.z=math.pi/2;player.mesh?.visible=true;}}
+  void _respawnPlayer(){player.stats.hp=player.stats.maxHp;player.stats.mana=player.stats.maxMana;player.targetable=true;player.position.setValues(-70,0,0);player.mesh?.position.setValues(-70,0,0);player.mesh?.rotation.z=0;player.mesh?.rotation.x=0;player.mesh?.visible=true;}
   bool _allEnemyTowersDown()=>towers.where((t)=>!t.ally).every((t)=>!t.alive);
   void _respawn(String id){final j=jungle.firstWhere((x)=>x.id==id);j.stats.hp=j.stats.maxHp;j.targetable=true;j.mesh?.visible=true;}
   void _cleanup(){for(final m in minions)if(!m.alive)m.mesh?.visible=false;for(final e in enemies)if(!e.alive)e.mesh?.visible=false;for(final t in towers)if(!t.alive)t.mesh?.visible=false;}
   double _dist(three.Vector3 a,three.Vector3 b){final x=a.x-b.x,z=a.z-b.z;return math.sqrt(x*x+z*z);}
   void basicAttack(){if(!player.alive)return;ProUnit? target;double best=player.stats.range+2;for(final e in enemies)if(e.alive){final d=_dist(player.position,e.position);if(d<best){best=d;target=e;}}for(final m in minions)if(m.alive&&m.team==1){final d=_dist(player.position,m.position);if(d<best){best=d;target=m;}}
     for(final j in jungle)if(j.alive&&j.targetable){final d=_dist(player.position,j.position);if(d<best){best=d;target=j;}}
-    if(target!=null){target.takeDamage(player.stats.attack,MobaDamageType.physical);if(!target.alive){if(target.id.startsWith('E')){kills++;_earnGold(180);level=math.min(15,1+kills~/2);}else if(target.id.startsWith('M'))_earnGold(45);else{_earnGold(target.id=='TURTLE'?300:target.id=='DRAKE'?500:80);player.addShield(target.id=='TURTLE'?450:0);}}}
+    if(target!=null){_swingHero(player);_spawnProjectile(player.position,target.position,0xffa9f7ff,12,player.stats.attack,target);if(!target.alive){if(target.id.startsWith('E')){kills++;_earnGold(180);level=math.min(15,1+kills~/2);}else if(target.id.startsWith('M'))_earnGold(45);else{_earnGold(target.id=='TURTLE'?300:target.id=='DRAKE'?500:80);player.addShield(target.id=='TURTLE'?450:0);}}}
     else{
       for(final t in towers.where((t)=>!t.ally&&t.alive)){if(_dist(player.position,t.position)<player.stats.range+4){t.hp=math.max(0,t.hp-player.stats.attack*.75);if(t.hp<=0)t.mesh?.visible=false;return;}}
       if(_allEnemyTowersDown()&&_dist(player.position,red.mesh.position)<18){red.hp=math.max(0,red.hp-player.stats.attack);}
     }}
-  void castSkill(int i){if(!player.alive||i<0||i>=skills.length)return;final s=skills[i],l=s.at(level);if((cds[s.id]??0)>0||player.stats.mana<l.cost)return;player.stats.mana-=l.cost;cds[s.id]=l.cooldown;var center=player.position.clone();if(i==1){center.x+=joyX*s.range;center.z+=joyZ*s.range;player.position.setValues(center.x,0,center.z);player.mesh?.position.setValues(center.x,0,center.z);}if(i!=1)center=_nearestPoint();for(final e in enemies)if(e.alive&&_dist(center,e.position)<=s.radius){e.takeDamage(l.damage+player.stats.attack*l.attackRatio,s.damageType);if(i==2)e.status.stun=.8;if(!e.alive){kills++;_earnGold(180);}}for(final m in minions)if(m.alive&&m.team==1&&_dist(center,m.position)<=s.radius){m.takeDamage(l.damage,s.damageType);if(!m.alive)_earnGold(45);}_showAim(center,s.radius);}
-  three.Vector3 _nearestPoint(){if(enemies.isEmpty)return player.position.clone();enemies.sort((a,b)=>_dist(a.position,player.position).compareTo(_dist(b.position,player.position)));return enemies.first.position.clone();}
+  void castSkill(int i){if(!player.alive||i<0||i>=skills.length)return;final s=skills[i],l=s.at(level);if((cds[s.id]??0)>0||player.stats.mana<l.cost)return;player.stats.mana-=l.cost;cds[s.id]=l.cooldown;var center=player.position.clone();if(i==1){center.x+=joyX*s.range;center.z+=joyZ*s.range;player.position.setValues(center.x,0,center.z);player.mesh?.position.setValues(center.x,0,center.z);}if(i!=1)center=_nearestPoint();_spawnBurst(center,i==2?0xffbd72ff:0xff55e8ff,s.radius);for(final e in enemies)if(e.alive&&_dist(center,e.position)<=s.radius){_spawnProjectile(player.position,e.position,i==2?0xffc477ff:0xff63efff,18,l.damage+l.attackRatio*player.stats.attack,e);e.takeDamage(l.damage+player.stats.attack*l.attackRatio,s.damageType);if(i==2)e.status.stun=.8;if(!e.alive){kills++;_earnGold(180);}}for(final m in minions)if(m.alive&&m.team==1&&_dist(center,m.position)<=s.radius){m.takeDamage(l.damage,s.damageType);if(!m.alive)_earnGold(45);}_showAim(center,s.radius);}
+  void _swingHero(ProUnit unit){final parts=_rigParts[unit.id];if(parts!=null&&parts.length>=2){parts[0].rotation.x=-1.15;parts[1].rotation.x=1.15;}}
+  void _spawnProjectile(three.Vector3 from,three.Vector3 to,int color,double speed,double damage,ProUnit? target){final orb=mesh(three.SphereGeometry(.55,8,6),color,metal:.3);orb.position.setValues(from.x,3.2,from.z);view.scene.add(orb);_projectiles.add(_Projectile(orb,three.Vector3(from.x,3.2,from.z),three.Vector3(to.x,2.5,to.z),speed,damage,target));}
+  void _spawnBurst(three.Vector3 p,int color,double radius){final ring=mesh(three.TorusGeometry(math.max(1,radius*.65),.22,6,24),color,metal:.25);ring.rotation.x=math.pi/2;ring.position.setValues(p.x,.45,p.z);view.scene.add(ring);_effects.add(_BattleEffect(ring,.55,radius*.9));for(int i=0;i<6;i++){final spark=mesh(three.OctahedronGeometry(.32,0),color,metal:.2);spark.position.setValues(p.x,1.1,p.z);view.scene.add(spark);_effects.add(_BattleEffect(spark,.35,radius*(.45+i*.08),phase:i*math.pi/3));}}
+  void _updateCombatEffects(double dt){for(final p in _projectiles.toList()){final dx=p.to.x-p.position.x,dz=p.to.z-p.position.z,dy=p.to.y-p.position.y,d=math.sqrt(dx*dx+dy*dy+dz*dz);final step=p.speed*dt;if(d<=step||d<.8){if(p.target!=null&&p.target!.alive){p.target!.takeDamage(p.damage,MobaDamageType.physical);_spawnBurst(p.target!.position,0xffffc66b,1.8);}view.scene.remove(p.mesh);_projectiles.remove(p);}else{p.position.x+=dx/d*step;p.position.y+=dy/d*step;p.position.z+=dz/d*step;p.mesh.position.setValues(p.position.x,p.position.y,p.position.z);}}
+    for(final e in _effects.toList()){e.life-=dt;e.mesh.rotation.y+=dt*4;e.mesh.scale.setValues(1+(1-e.life/.55)*e.scale,1+(1-e.life/.55)*e.scale,1+(1-e.life/.55)*e.scale);e.mesh.position.y=.45+(1-e.life/.55)*1.2;if(e.phase!=0){e.mesh.position.x+=math.cos(e.phase)*dt*e.scale*2;e.mesh.position.z+=math.sin(e.phase)*dt*e.scale*2;}if(e.life<=0){view.scene.remove(e.mesh);_effects.remove(e);}}
+  }
+  three.Vector3 _nearestPoint(){final alive=enemies.where((e)=>e.alive&&e.targetable).toList();if(alive.isEmpty)return player.position.clone();alive.sort((a,b)=>_dist(a.position,player.position).compareTo(_dist(b.position,player.position)));return alive.first.position.clone();}
   void _showAim(three.Vector3 p,double r){if(aimRing==null){aimRing=mesh(three.TorusGeometry(1,.08,8,32),0x6ee7ff,metal:.2);view.scene.add(aimRing!);}aimTimer=.85;aimRing!.visible=true;aimRing!.scale.setValues(r,r,r);aimRing!.position.setValues(p.x,.35,p.z);aimRing!.rotation.z=0;}
   void _camera(){if(!started)return;view.camera.position.setValues(player.position.x-42,58,player.position.z+55);view.camera.lookAt(player.position);}
-  void _finish(bool v){if(ended)return;ended=true;won=v;}
+  void _finish(bool v){if(ended)return;ended=true;won=v;joyX=0;joyZ=0;if(mounted)setState((){});}
 
   Widget _mainMenu()=>Scaffold(body:Container(decoration:const BoxDecoration(gradient:LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Color(0xff06101e),Color(0xff102f3d),Color(0xff07160f)])),child:Stack(children:[Positioned(right:-70,top:-80,child:Container(width:280,height:280,decoration:BoxDecoration(shape:BoxShape.circle,color:const Color(0xff29c9e8).withValues(alpha:.09)))),Positioned(left:-90,bottom:-110,child:Container(width:320,height:320,decoration:BoxDecoration(shape:BoxShape.circle,color:const Color(0xff2867ff).withValues(alpha:.12)))),SafeArea(child:Center(child:SingleChildScrollView(padding:const EdgeInsets.all(22),child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:760),child:Container(padding:const EdgeInsets.all(24),decoration:BoxDecoration(color:const Color(0xdd081522),borderRadius:BorderRadius.circular(26),border:Border.all(color:const Color(0xff55dff2).withValues(alpha:.42)),boxShadow:const [BoxShadow(color:Color(0x3327c9e9),blurRadius:32)]),child:Column(mainAxisSize:MainAxisSize.min,crossAxisAlignment:CrossAxisAlignment.start,children:[Row(children:[Container(width:58,height:58,decoration:BoxDecoration(gradient:const LinearGradient(colors:[Color(0xff32d9f2),Color(0xff3168ff)]),borderRadius:BorderRadius.circular(17)),child:const Icon(Icons.shield_moon,size:34,color:Colors.white)),const SizedBox(width:14),const Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('ARENA LEGENDS',style:TextStyle(fontSize:28,fontWeight:FontWeight.w900,letterSpacing:2,color:Colors.white)),Text('3D MOBILE MOBA • OFFLINE BATTLE',style:TextStyle(fontSize:11,fontWeight:FontWeight.w800,letterSpacing:1.4,color:Color(0xff6de9ff)))]))]),const SizedBox(height:22),Container(height:145,width:double.infinity,decoration:BoxDecoration(borderRadius:BorderRadius.circular(18),gradient:const LinearGradient(begin:Alignment.topLeft,end:Alignment.bottomRight,colors:[Color(0xff174b5b),Color(0xff142b49),Color(0xff311b50)])),child:Stack(children:[Positioned(left:18,top:18,child:Icon(Icons.auto_awesome,size:34,color:Color(0xff7af3ff))),Positioned(right:28,top:16,child:Icon(Icons.bolt,size:42,color:Color(0xffffcf6e))),const Center(child:Icon(Icons.sports_martial_arts,size:88,color:Color(0xffd8f5ff))),Positioned(left:16,bottom:12,child:Text('ENTER THE BATTLEFIELD',style:TextStyle(color:Colors.white,fontWeight:FontWeight.w900,letterSpacing:2,fontSize:13)))])),const SizedBox(height:18),const Text('Pilih lane. Kalahkan lawan. Hancurkan crystal musuh.',style:TextStyle(color:Color(0xffd3e3ef),fontSize:14)),const SizedBox(height:16),Wrap(spacing:8,runSpacing:8,children:[_menuTag(Icons.view_in_ar,'3D ARENA'),_menuTag(Icons.route,'3 LANES'),_menuTag(Icons.auto_awesome,'HERO SKILLS'),_menuTag(Icons.castle,'TOWER SIEGE')]),const SizedBox(height:22),SizedBox(width:double.infinity,height:58,child:FilledButton.icon(style:FilledButton.styleFrom(backgroundColor:const Color(0xff22c9e8),foregroundColor:const Color(0xff061522),shape:RoundedRectangleBorder(borderRadius:BorderRadius.circular(16))),onPressed:start,icon:const Icon(Icons.play_arrow_rounded,size:30),label:const Text('MULAI PERTANDINGAN',style:TextStyle(fontSize:16,fontWeight:FontWeight.w900,letterSpacing:1)))),const SizedBox(height:10),const Center(child:Text('SINGLE PLAYER • TOUCH CONTROLS • ORIGINAL HEROES',textAlign:TextAlign.center,style:TextStyle(fontSize:10,color:Color(0xff8ca9bc),letterSpacing:1.1)))])))))]))));
   Widget _menuTag(IconData icon,String label)=>Container(padding:const EdgeInsets.symmetric(horizontal:11,vertical:9),decoration:BoxDecoration(color:const Color(0xff173043),borderRadius:BorderRadius.circular(10),border:Border.all(color:const Color(0xff35546b))),child:Row(mainAxisSize:MainAxisSize.min,children:[Icon(icon,size:15,color:const Color(0xff72eaff)),const SizedBox(width:6),Text(label,style:const TextStyle(fontSize:10,fontWeight:FontWeight.w800,color:Colors.white))]));
@@ -252,3 +283,6 @@ class _MiniMapPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _MiniMapPainter oldDelegate) => oldDelegate.playerX != playerX || oldDelegate.playerZ != playerZ;
 }
+
+class _Projectile { _Projectile(this.mesh,this.position,this.to,this.speed,this.damage,this.target); final three.Mesh mesh; final three.Vector3 position,to; final double speed,damage; final ProUnit? target; }
+class _BattleEffect { _BattleEffect(this.mesh,this.life,this.scale,{this.phase=0}); final three.Mesh mesh; double life; final double scale,phase; }
